@@ -58,40 +58,46 @@ export class McpRuntimeServer {
     if (tools.length === 0) return;
 
     // List tools
-    this.server.setRequestHandler(({ method: 'tools/list' } as unknown) as AnyObjectSchema, async () => ({
-      tools: tools.map(tool => ({
-        name: tool.name,
-        description: tool.description,
-        inputSchema: tool.inputSchema ?? { type: 'object' as const, properties: {} },
-      })),
-    }));
+    this.server.setRequestHandler(
+      { method: 'tools/list' } as unknown as AnyObjectSchema,
+      async () => ({
+        tools: tools.map(tool => ({
+          name: tool.name,
+          description: tool.description,
+          inputSchema: tool.inputSchema ?? { type: 'object' as const, properties: {} },
+        })),
+      })
+    );
 
     // Call tool
-    this.server.setRequestHandler(({ method: 'tools/call' } as unknown) as AnyObjectSchema, async (request: any) => {
-      const toolName = request.params.name;
-      const tool = tools.find(t => t.name === toolName);
+    this.server.setRequestHandler(
+      { method: 'tools/call' } as unknown as AnyObjectSchema,
+      async (request: any) => {
+        const toolName = request.params.name;
+        const tool = tools.find(t => t.name === toolName);
 
-      if (!tool) {
-        throw new Error(`Unknown tool: ${toolName}`);
+        if (!tool) {
+          throw new Error(`Unknown tool: ${toolName}`);
+        }
+
+        const method = (this.instance as any)[tool.propertyKey];
+        if (typeof method !== 'function') {
+          throw new Error(`Method ${String(tool.propertyKey)} not found`);
+        }
+
+        const args = this.resolveToolArgs(tool.propertyKey, request.params.arguments ?? {});
+        const result = await method.apply(this.instance, args);
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: typeof result === 'string' ? result : JSON.stringify(result),
+            },
+          ],
+        };
       }
-
-      const method = (this.instance as any)[tool.propertyKey];
-      if (typeof method !== 'function') {
-        throw new Error(`Method ${String(tool.propertyKey)} not found`);
-      }
-
-      const args = this.resolveToolArgs(tool.propertyKey, request.params.arguments ?? {});
-      const result = await method.apply(this.instance, args);
-
-      return {
-        content: [
-          {
-            type: 'text',
-            text: typeof result === 'string' ? result : JSON.stringify(result),
-          },
-        ],
-      };
-    });
+    );
   }
 
   private setupResourceHandlers() {
@@ -99,18 +105,21 @@ export class McpRuntimeServer {
     if (resources.length === 0) return;
 
     // List resources
-    this.server.setRequestHandler(({ method: 'resources/list' } as unknown) as AnyObjectSchema, async () => ({
-      resources: resources.map(resource => ({
-        uri: resource.uri,
-        name: resource.name,
-        description: resource.description,
-        mimeType: resource.mimeType,
-      })),
-    }));
+    this.server.setRequestHandler(
+      { method: 'resources/list' } as unknown as AnyObjectSchema,
+      async () => ({
+        resources: resources.map(resource => ({
+          uri: resource.uri,
+          name: resource.name,
+          description: resource.description,
+          mimeType: resource.mimeType,
+        })),
+      })
+    );
 
     // Read resource
     this.server.setRequestHandler(
-      ({ method: 'resources/read' } as unknown) as AnyObjectSchema,
+      { method: 'resources/read' } as unknown as AnyObjectSchema,
       async (request: any) => {
         const uri = request.params.uri as string;
 
@@ -138,17 +147,20 @@ export class McpRuntimeServer {
     if (prompts.length === 0) return;
 
     // List prompts
-    this.server.setRequestHandler(({ method: 'prompts/list' } as unknown) as AnyObjectSchema, async () => ({
-      prompts: prompts.map(prompt => ({
-        name: prompt.name,
-        description: prompt.description,
-        arguments: prompt.arguments ?? [],
-      })),
-    }));
+    this.server.setRequestHandler(
+      { method: 'prompts/list' } as unknown as AnyObjectSchema,
+      async () => ({
+        prompts: prompts.map(prompt => ({
+          name: prompt.name,
+          description: prompt.description,
+          arguments: prompt.arguments ?? [],
+        })),
+      })
+    );
 
     // Get prompt
     this.server.setRequestHandler(
-      ({ method: 'prompts/get' } as unknown) as AnyObjectSchema,
+      { method: 'prompts/get' } as unknown as AnyObjectSchema,
       async (request: any) => {
         const promptName = request.params.name;
         const prompt = prompts.find(p => p.name === promptName);

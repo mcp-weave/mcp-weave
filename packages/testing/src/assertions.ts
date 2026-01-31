@@ -97,14 +97,16 @@ export function assertPromptHasMessage(
     throw new Error('Prompt is not an object');
   }
   const messages = (prompt as Record<string, unknown>).messages ?? [];
-  const found = Array.isArray(messages) && messages.find((m: unknown) => {
-    if (typeof m !== 'object' || m === null) return false;
-    // @ts-expect-error: dynamic access
-    if (m.role !== role) return false;
-    // @ts-expect-error: dynamic access
-    const content = typeof m.content === 'string' ? m.content : m.content?.text;
-    return typeof content === 'string' && content.includes(contentIncludes);
-  });
+  const found =
+    Array.isArray(messages) &&
+    messages.find((m: unknown) => {
+      if (typeof m !== 'object' || m === null) return false;
+      // @ts-expect-error: dynamic access
+      if (m.role !== role) return false;
+      // @ts-expect-error: dynamic access
+      const content = typeof m.content === 'string' ? m.content : m.content?.text;
+      return typeof content === 'string' && content.includes(contentIncludes);
+    });
   if (!found) {
     throw new Error(`Expected prompt to have ${role} message containing '${contentIncludes}'`);
   }
