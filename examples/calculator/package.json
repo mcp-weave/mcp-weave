@@ -1,0 +1,20 @@
+{
+  "name": "mcp-calculator-example",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Example MCP server using @mcp-weave/nestjs decorators",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "@mcp-weave/nestjs": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "reflect-metadata": "^0.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.4.0"
+  }
+}
