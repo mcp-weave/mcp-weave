@@ -13,7 +13,7 @@
 - [x] Build funcionando em todos os pacotes
 
 ### Pendente para v0.1.0
-- [ ] Testes unitários para todos os pacotes
+- [x] Testes unitários para todos os pacotes (152 testes)
 - [ ] Exemplo funcional completo
 - [ ] CI/CD GitHub Actions
 
@@ -21,33 +21,38 @@
 
 ## Fase 1: Completar MVP (v0.1.0)
 
-### 1.1 Testes Unitários
-**Prioridade: Alta**
+### 1.1 Testes Unitários ✅ CONCLUÍDO
+**152 testes passando**
 
 ```
-packages/core/src/__tests__/
+packages/core/src/__tests__/         # 51 tests
 ├── spec/
-│   ├── parser.test.ts      # Parsing de YAML
-│   ├── validator.test.ts   # Validação com Zod
-│   └── types.test.ts       # Schemas Zod
+│   ├── parser.test.ts              # 9 tests - Parsing de YAML
+│   └── validator.test.ts           # 15 tests - Validação com Zod
 ├── scanner/
-│   └── metadata.test.ts    # Extração de metadata
+│   └── metadata.test.ts            # 14 tests - Extração de metadata
 └── generator/
-    └── server.test.ts      # Geração de código
+    └── server.test.ts              # 13 tests - Geração de código
 
-packages/nestjs/src/__tests__/
+packages/nestjs/src/__tests__/       # 42 tests
 ├── decorators/
-│   ├── mcp-server.test.ts
-│   ├── mcp-tool.test.ts
-│   ├── mcp-resource.test.ts
-│   └── mcp-prompt.test.ts
-└── runtime/
-    └── server.test.ts      # Runtime server
+│   ├── mcp-server.test.ts          # 4 tests
+│   ├── mcp-tool.test.ts            # 5 tests
+│   ├── mcp-resource.test.ts        # 5 tests
+│   ├── mcp-prompt.test.ts          # 5 tests
+│   └── params.test.ts              # 8 tests
+└── metadata/
+    └── storage.test.ts             # 15 tests
 
-packages/cli/src/__tests__/
+packages/testing/src/__tests__/      # 47 tests
+├── mock-server.test.ts             # 13 tests
+├── mock-transport.test.ts          # 13 tests
+└── assertions.test.ts              # 21 tests
+
+packages/cli/src/__tests__/          # 12 tests
 └── commands/
-    ├── generate.test.ts
-    └── init.test.ts
+    ├── generate.test.ts            # 5 tests
+    └── init.test.ts                # 7 tests
 ```
 
 ### 1.2 Exemplo Funcional
