@@ -1,15 +1,7 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 
-import {
-  extractMetadata,
-  getServerMetadata,
-  getToolsMetadata,
-  getResourcesMetadata,
-  getPromptsMetadata,
-  getParamsMetadata,
-} from '../metadata/storage.js';
-import type { McpParamMetadata } from '@mcp-weave/core';
+import { extractMetadata } from '../metadata/storage.js';
 
 /**
  * Options for MCP runtime server
@@ -30,8 +22,8 @@ export class McpRuntimeServer {
   private metadata;
 
   constructor(
-    private readonly target: Function,
-    private readonly options: McpRuntimeOptions = {}
+    target: Function,
+    _options: McpRuntimeOptions = {}
   ) {
     this.metadata = extractMetadata(target);
     
