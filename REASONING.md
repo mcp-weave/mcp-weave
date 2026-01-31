@@ -101,6 +101,10 @@ Responsabilidades:
 | @mcp-weave/cli | ✅ | generate, init, start, extract (12 tests) |
 | @mcp-weave/testing | ✅ | Mock server, transport, assertions (47 tests) |
 | Testes unitários | ✅ | 152 testes passando |
+| @mcp-weave/core | ✅ | Parser, validator, generator |
+| @mcp-weave/nestjs | ✅ | Decorators + runtime server |
+| @mcp-weave/cli | ✅ | generate, init, start, extract |
+| @mcp-weave/testing | ✅ | Mock server, transport, assertions |
 
 ---
 
