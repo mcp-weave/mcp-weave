@@ -1,4 +1,3 @@
-
 import { Server, StdioServerTransport, AnyObjectSchema } from './sdk-compat.js';
 import { extractMetadata } from '../metadata/storage.js';
 
@@ -81,12 +80,15 @@ export class McpRuntimeServer {
         if (!tool) {
           throw new Error(`Unknown tool: ${toolName}`);
         }
-        const method = (this.instance as Record<string, unknown>)[tool.propertyKey];
+        const method = Reflect.get(this.instance as object, tool.propertyKey);
         if (typeof method !== 'function') {
           throw new Error(`Method ${String(tool.propertyKey)} not found`);
         }
-        const args = this.resolveToolArgs(tool.propertyKey, (params.arguments ?? {}) as Record<string, unknown>);
-        const result = await method.apply(this.instance, args);
+        const args = this.resolveToolArgs(
+          tool.propertyKey,
+          (params.arguments ?? {}) as Record<string, unknown>
+        );
+        const result = await method.apply(this.instance as object, args);
         return {
           content: [
             {
@@ -128,12 +130,12 @@ export class McpRuntimeServer {
         for (const resource of resources) {
           const uriParams = this.extractUriParams(resource.uri, uri);
           if (uriParams) {
-            const method = (this.instance as Record<string, unknown>)[resource.propertyKey];
+            const method = Reflect.get(this.instance as object, resource.propertyKey);
             if (typeof method !== 'function') {
               throw new Error(`Method ${String(resource.propertyKey)} not found`);
             }
             const args = this.resolveResourceArgs(resource.propertyKey, uriParams);
-            return await method.apply(this.instance, args);
+            return await method.apply(this.instance as object, args);
           }
         }
         throw new Error(`Resource not found: ${uri}`);
@@ -169,12 +171,15 @@ export class McpRuntimeServer {
         if (!prompt) {
           throw new Error(`Unknown prompt: ${promptName}`);
         }
-        const method = (this.instance as Record<string, unknown>)[prompt.propertyKey];
+        const method = Reflect.get(this.instance as object, prompt.propertyKey);
         if (typeof method !== 'function') {
           throw new Error(`Method ${String(prompt.propertyKey)} not found`);
         }
-        const args = this.resolvePromptArgs(prompt.propertyKey, (params.arguments ?? {}) as Record<string, unknown>);
-        return await method.apply(this.instance, args);
+        const args = this.resolvePromptArgs(
+          prompt.propertyKey,
+          (params.arguments ?? {}) as Record<string, unknown>
+        );
+        return await method.apply(this.instance as object, args);
       }
     );
   }
