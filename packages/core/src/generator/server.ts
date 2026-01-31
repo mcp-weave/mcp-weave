@@ -22,7 +22,7 @@ export interface GeneratedFile {
  */
 export function generateServer(spec: McpSpec, options: GeneratorOptions): GeneratedFile[] {
   const files: GeneratedFile[] = [];
-  
+
   // Generate main server file
   files.push({
     path: `${options.outputDir}/server.ts`,
@@ -97,7 +97,9 @@ function generateToolsFile(spec: McpSpec): string {
 
 import { server } from './server.js';
 
-${tools.map(tool => `
+${tools
+  .map(
+    tool => `
 // Tool: ${tool.name}
 // ${tool.description}
 server.setRequestHandler(
@@ -123,15 +125,21 @@ server.setRequestHandler(
   { method: 'tools/list' },
   async () => ({
     tools: [
-      ${tools.map(t => `{
+      ${tools
+        .map(
+          t => `{
         name: '${t.name}',
         description: '${t.description}',
         inputSchema: ${JSON.stringify(t.inputSchema ?? { type: 'object', properties: {} })},
-      }`).join(',\n      ')}
+      }`
+        )
+        .join(',\n      ')}
     ],
   })
 );
-`).join('\n')}
+`
+  )
+  .join('\n')}
 `;
 }
 
@@ -145,12 +153,16 @@ server.setRequestHandler(
   { method: 'resources/list' },
   async () => ({
     resources: [
-      ${resources.map(r => `{
+      ${resources
+        .map(
+          r => `{
         uri: '${r.uri}',
         name: '${r.name}',
         description: '${r.description ?? ''}',
         mimeType: '${r.mimeType}',
-      }`).join(',\n      ')}
+      }`
+        )
+        .join(',\n      ')}
     ],
   })
 );
@@ -184,11 +196,15 @@ server.setRequestHandler(
   { method: 'prompts/list' },
   async () => ({
     prompts: [
-      ${prompts.map(p => `{
+      ${prompts
+        .map(
+          p => `{
         name: '${p.name}',
         description: '${p.description}',
         arguments: ${JSON.stringify(p.arguments ?? [])},
-      }`).join(',\n      ')}
+      }`
+        )
+        .join(',\n      ')}
     ],
   })
 );

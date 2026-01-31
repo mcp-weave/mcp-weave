@@ -162,9 +162,7 @@ class CalculatorServer {
   @McpPrompt({
     name: 'solve_equation',
     description: 'Generate a prompt to solve a math equation',
-    arguments: [
-      { name: 'equation', description: 'The equation to solve', required: true },
-    ],
+    arguments: [{ name: 'equation', description: 'The equation to solve', required: true }],
   })
   solveEquation(@McpPromptArg('equation') equation: string) {
     return {
@@ -184,7 +182,11 @@ class CalculatorServer {
     name: 'explain_calculation',
     description: 'Generate a prompt to explain a calculation',
     arguments: [
-      { name: 'operation', description: 'The operation (add, subtract, multiply, divide)', required: true },
+      {
+        name: 'operation',
+        description: 'The operation (add, subtract, multiply, divide)',
+        required: true,
+      },
       { name: 'a', description: 'First number', required: true },
       { name: 'b', description: 'Second number', required: true },
     ],

@@ -46,6 +46,7 @@ mcp-weave --help
 ## Contributing
 
 Pull requests are welcome! To contribute:
+
 1. Fork this repository
 2. Create a branch
 3. Submit your PR

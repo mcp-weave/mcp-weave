@@ -9,7 +9,9 @@ export function parseSpec(yamlContent: string): unknown {
   try {
     return YAML.parse(yamlContent);
   } catch (error) {
-    throw new Error(`Failed to parse YAML: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `Failed to parse YAML: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
   }
 }
 

@@ -35,10 +35,15 @@ export interface ScannedMetadata {
  */
 export function extractMetadata(target: Function): ScannedMetadata {
   const server = Reflect.getMetadata(METADATA_KEYS.SERVER, target) as McpServerMetadata | undefined;
-  const tools = (Reflect.getMetadata(METADATA_KEYS.TOOLS, target) as McpToolMetadata[] | undefined) ?? [];
-  const resources = (Reflect.getMetadata(METADATA_KEYS.RESOURCES, target) as McpResourceMetadata[] | undefined) ?? [];
-  const prompts = (Reflect.getMetadata(METADATA_KEYS.PROMPTS, target) as McpPromptMetadata[] | undefined) ?? [];
-  const params = (Reflect.getMetadata(METADATA_KEYS.PARAMS, target) as McpParamMetadata[] | undefined) ?? [];
+  const tools =
+    (Reflect.getMetadata(METADATA_KEYS.TOOLS, target) as McpToolMetadata[] | undefined) ?? [];
+  const resources =
+    (Reflect.getMetadata(METADATA_KEYS.RESOURCES, target) as McpResourceMetadata[] | undefined) ??
+    [];
+  const prompts =
+    (Reflect.getMetadata(METADATA_KEYS.PROMPTS, target) as McpPromptMetadata[] | undefined) ?? [];
+  const params =
+    (Reflect.getMetadata(METADATA_KEYS.PARAMS, target) as McpParamMetadata[] | undefined) ?? [];
 
   return { server, tools, resources, prompts, params };
 }

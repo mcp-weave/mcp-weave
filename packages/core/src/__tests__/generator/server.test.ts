@@ -147,7 +147,7 @@ describe('generateServer', () => {
     const serverFile = files.find(f => f.path.endsWith('server.ts'));
 
     expect(serverFile?.content).toContain("import { Server } from '@modelcontextprotocol/sdk");
-    expect(serverFile?.content).toContain("import { StdioServerTransport }");
+    expect(serverFile?.content).toContain('import { StdioServerTransport }');
   });
 
   it('should set capabilities based on spec content', () => {

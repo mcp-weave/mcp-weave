@@ -94,7 +94,10 @@ export const McpSpecSchema = z.object({
   tools: z.array(ToolDefinitionSchema).optional().default([]),
   resources: z.array(ResourceDefinitionSchema).optional().default([]),
   prompts: z.array(PromptDefinitionSchema).optional().default([]),
-  transport: z.array(TransportConfigSchema).optional().default([{ type: 'stdio' }]),
+  transport: z
+    .array(TransportConfigSchema)
+    .optional()
+    .default([{ type: 'stdio' }]),
 });
 
 export type McpSpec = z.infer<typeof McpSpecSchema>;

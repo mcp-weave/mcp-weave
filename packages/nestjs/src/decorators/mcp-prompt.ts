@@ -10,12 +10,12 @@ export interface McpPromptOptions {
    * Prompt name
    */
   name: string;
-  
+
   /**
    * Prompt description
    */
   description: string;
-  
+
   /**
    * Prompt arguments
    */
@@ -24,7 +24,7 @@ export interface McpPromptOptions {
 
 /**
  * Marks a method as an MCP prompt
- * 
+ *
  * @example
  * ```typescript
  * @McpPrompt({
@@ -41,10 +41,10 @@ export interface McpPromptOptions {
 export function McpPrompt(options: McpPromptOptions): MethodDecorator {
   return (target: Object, propertyKey: string | symbol, _descriptor: PropertyDescriptor) => {
     const constructor = target.constructor;
-    
-    const existingPrompts: McpPromptMetadata[] = 
+
+    const existingPrompts: McpPromptMetadata[] =
       Reflect.getMetadata(METADATA_KEYS.PROMPTS, constructor) ?? [];
-    
+
     const metadata: McpPromptMetadata = {
       name: options.name,
       description: options.description,
@@ -52,7 +52,7 @@ export function McpPrompt(options: McpPromptOptions): MethodDecorator {
       propertyKey,
       target: constructor,
     };
-    
+
     Reflect.defineMetadata(METADATA_KEYS.PROMPTS, [...existingPrompts, metadata], constructor);
   };
 }

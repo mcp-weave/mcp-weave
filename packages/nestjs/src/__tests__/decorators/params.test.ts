@@ -69,10 +69,7 @@ describe('@McpParam', () => {
 
   it('should support multiple params', () => {
     class TestServer {
-      getOrgUser(
-        @McpParam('orgId') _orgId: string,
-        @McpParam('userId') _userId: string
-      ) {
+      getOrgUser(@McpParam('orgId') _orgId: string, @McpParam('userId') _userId: string) {
         return {};
       }
     }

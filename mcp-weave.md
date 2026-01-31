@@ -1,6 +1,7 @@
 # MCP-Weave - Project Context
 
 ## Overview
+
 MCP-Weave is an open-source library that works like "Swagger for MCP" (Model Context Protocol). It allows developers to transform existing code into MCP servers using simple annotations/decorators.
 
 **Repository:** https://github.com/mcp-weave/mcp-weave  
@@ -10,6 +11,7 @@ MCP-Weave is an open-source library that works like "Swagger for MCP" (Model Con
 ## Core Concept
 
 Transform annotated code into MCP servers:
+
 ```typescript
 @McpServer({ name: 'user-service' })
 export class UserController {
@@ -25,11 +27,13 @@ export class UserController {
 ### Two Main Flows
 
 **Code-First:**
+
 ```
 Annotated Code → Scanner → Metadata → Generator → MCP Server
 ```
 
 **Spec-First:**
+
 ```
 mcp-spec.yaml → Parser → Validator → Generator → Boilerplate Code
 ```
@@ -37,14 +41,18 @@ mcp-spec.yaml → Parser → Validator → Generator → Boilerplate Code
 ## Packages
 
 ### @mcp-weave/core
+
 Core functionality:
+
 - Parse and validate mcp-spec.yaml
 - Scan decorators and extract metadata
 - Generate code from specs
 - Template engine
 
 ### @mcp-weave/cli
+
 Command line interface:
+
 - `generate` - Generate MCP server from spec
 - `extract` - Extract spec from annotated code
 - `start` - Start MCP server
@@ -52,7 +60,9 @@ Command line interface:
 - `scaffold` - Scaffold new project
 
 ### @mcp-weave/nestjs
+
 NestJS integration:
+
 - Decorators: `@McpServer`, `@McpTool`, `@McpResource`, `@McpPrompt`
 - Parameter decorators: `@McpInput`, `@McpParam`, `@McpPromptArg`
 - Runtime MCP server
@@ -60,55 +70,60 @@ NestJS integration:
 - Integration with NestJS DI
 
 ### @mcp-weave/testing
+
 Testing utilities:
+
 - Mock MCP server
 - Test assertions
 - Mock transport
 
 ## Spec Format (mcp-spec.yaml)
+
 ```yaml
-version: "1.0"
+version: '1.0'
 
 server:
-  name: "user-management"
-  version: "1.0.0"
-  description: "User management service"
-  
+  name: 'user-management'
+  version: '1.0.0'
+  description: 'User management service'
+
 tools:
   - name: create_user
-    description: "Creates a new user"
+    description: 'Creates a new user'
     inputSchema:
       type: object
       properties:
         name: { type: string }
         email: { type: string, format: email }
       required: [name, email]
-    handler: "/handlers/user/create"
-    
+    handler: '/handlers/user/create'
+
 resources:
-  - uri: "user://{userId}"
-    name: "User Profile"
-    mimeType: "application/json"
-    handler: "/handlers/user/get"
+  - uri: 'user://{userId}'
+    name: 'User Profile'
+    mimeType: 'application/json'
+    handler: '/handlers/user/get'
 
 prompts:
-  - name: "welcome_email"
-    description: "Generate welcome email"
+  - name: 'welcome_email'
+    description: 'Generate welcome email'
     arguments:
       - name: userName
         required: true
-    handler: "/handlers/prompts/welcome"
+    handler: '/handlers/prompts/welcome'
 
 transport:
   - type: stdio
   - type: sse
-    endpoint: "/mcp/sse"
+    endpoint: '/mcp/sse'
 ```
 
 ## Decorators API
 
 ### @McpServer(options)
+
 Marks a class as an MCP server.
+
 ```typescript
 @McpServer({
   name: string;
@@ -118,7 +133,9 @@ Marks a class as an MCP server.
 ```
 
 ### @McpTool(options)
+
 Marks a method as an MCP tool.
+
 ```typescript
 @McpTool({
   name: string;
@@ -128,7 +145,9 @@ Marks a method as an MCP tool.
 ```
 
 ### @McpResource(options)
+
 Marks a method as an MCP resource.
+
 ```typescript
 @McpResource({
   uri: string;
@@ -139,7 +158,9 @@ Marks a method as an MCP resource.
 ```
 
 ### @McpPrompt(options)
+
 Marks a method as an MCP prompt.
+
 ```typescript
 @McpPrompt({
   name: string;
@@ -153,11 +174,13 @@ Marks a method as an MCP prompt.
 ```
 
 ### Parameter Decorators
+
 - `@McpInput()` - Tool input
 - `@McpParam(name)` - URI parameter
 - `@McpPromptArg(name)` - Prompt argument
 
 ## Project Structure
+
 ```
 mcp-weave/
 ├── packages/
@@ -209,6 +232,7 @@ mcp-weave/
 ## Roadmap
 
 ### v0.1.0 - MVP
+
 - Core spec parser and validator
 - NestJS decorators (@McpServer, @McpTool, @McpResource)
 - CLI with `generate` and `start` commands
@@ -217,6 +241,7 @@ mcp-weave/
 - Initial documentation
 
 ### v0.2.0
+
 - Express support
 - SSE transport
 - Testing utilities
@@ -224,12 +249,14 @@ mcp-weave/
 - Hot reload
 
 ### v0.3.0+
+
 - Python/FastAPI support
 - WebSocket transport
 - Web UI for testing
 - Go/Gin support
 
 ## CLI Commands (Planned)
+
 ```bash
 # Generate server from spec
 mcp-weave generate --spec mcp-spec.yaml --output ./server
@@ -248,66 +275,70 @@ mcp-weave init --name my-service --framework nestjs
 ```
 
 ## Example Usage
+
 ```typescript
-import { 
-  McpServer, 
-  McpTool, 
-  McpResource, 
+import {
+  McpServer,
+  McpTool,
+  McpResource,
   McpPrompt,
-  McpInput, 
+  McpInput,
   McpParam,
-  McpPromptArg 
+  McpPromptArg,
 } from '@mcp-weave/nestjs';
 
-@McpServer({ 
+@McpServer({
   name: 'user-service',
   version: '1.0.0',
-  description: 'User management service'
+  description: 'User management service',
 })
 export class UserController {
-  
   @McpTool({
     name: 'create_user',
-    description: 'Creates a new user in the system'
+    description: 'Creates a new user in the system',
   })
   async createUser(@McpInput() input: CreateUserDto) {
     const user = await this.userService.create(input);
-    return { 
-      success: true, 
-      userId: user.id 
+    return {
+      success: true,
+      userId: user.id,
     };
   }
-  
+
   @McpResource({
     uri: 'user://{userId}',
     name: 'User Profile',
     description: 'Get user profile data',
-    mimeType: 'application/json'
+    mimeType: 'application/json',
   })
   async getUserProfile(@McpParam('userId') userId: string) {
     const user = await this.userService.findById(userId);
     return {
-      contents: [{
-        uri: `user://${userId}`,
-        mimeType: 'application/json',
-        text: JSON.stringify(user)
-      }]
+      contents: [
+        {
+          uri: `user://${userId}`,
+          mimeType: 'application/json',
+          text: JSON.stringify(user),
+        },
+      ],
     };
   }
-  
+
   @McpPrompt({
     name: 'welcome_email',
-    description: 'Generate welcome email for new user'
+    description: 'Generate welcome email for new user',
   })
   async generateWelcomeEmail(
     @McpPromptArg('userName') userName: string,
     @McpPromptArg('userEmail') userEmail: string
   ) {
     return {
-      messages: [{
-        role: 'user',
-        content: `Generate a welcome email for ${userName} (${userEmail})`
-      }]
+      messages: [
+        {
+          role: 'user',
+          content: `Generate a welcome email for ${userName} (${userEmail})`,
+        },
+      ],
     };
   }
 }
@@ -316,24 +347,28 @@ export class UserController {
 ## Key Design Decisions
 
 ### Why Decorators?
+
 - Familiar to NestJS developers
 - Non-invasive - doesn't change existing logic
 - Type-safe with TypeScript
 - Self-documenting
 
 ### Why YAML for Spec?
+
 - More readable than JSON
 - Standard in similar tools (OpenAPI)
 - Easy to version control
 - Supports comments
 
 ### Why Monorepo?
+
 - Coordinated development
 - Code reuse
 - Synchronized versioning
 - Better DX
 
 ## Development Setup
+
 ```bash
 # Clone repo
 git clone git@github.com:mcp-weave/mcp-weave.git

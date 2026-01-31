@@ -11,13 +11,13 @@ export const extractCommand = new Command('extract')
   .description('Extract MCP spec from annotated code (coming soon)')
   .option('-s, --source <path>', 'Source directory', './src')
   .option('-o, --output <path>', 'Output spec file', 'mcp-spec.yaml')
-  .action(async (options) => {
+  .action(async options => {
     const spinner = ora('Scanning source files...').start();
 
     try {
       const sourcePath = path.resolve(options.source);
-      
-      if (!await fs.pathExists(sourcePath)) {
+
+      if (!(await fs.pathExists(sourcePath))) {
         spinner.fail(chalk.red(`Source directory not found: ${sourcePath}`));
         process.exit(1);
       }
@@ -26,7 +26,7 @@ export const extractCommand = new Command('extract')
 
       // TODO: Implement actual extraction from TypeScript files
       // For now, create a placeholder spec
-      
+
       const spec: McpSpec = {
         version: '1.0',
         server: {
@@ -44,10 +44,11 @@ export const extractCommand = new Command('extract')
       await fs.writeFile(outputPath, stringifySpec(spec));
 
       spinner.succeed(chalk.green(`Spec extracted to: ${outputPath}`));
-      
-      console.log('\n' + chalk.yellow('Note: Full extraction from TypeScript decorators coming in v0.2.0'));
-      console.log(chalk.gray('For now, a placeholder spec has been created.'));
 
+      console.log(
+        '\n' + chalk.yellow('Note: Full extraction from TypeScript decorators coming in v0.2.0')
+      );
+      console.log(chalk.gray('For now, a placeholder spec has been created.'));
     } catch (error) {
       spinner.fail(chalk.red(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`));
       process.exit(1);

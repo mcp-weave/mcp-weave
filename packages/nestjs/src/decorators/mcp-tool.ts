@@ -10,12 +10,12 @@ export interface McpToolOptions {
    * Tool name
    */
   name: string;
-  
+
   /**
    * Tool description
    */
   description: string;
-  
+
   /**
    * Input schema (JSON Schema)
    */
@@ -24,7 +24,7 @@ export interface McpToolOptions {
 
 /**
  * Marks a method as an MCP tool
- * 
+ *
  * @example
  * ```typescript
  * @McpTool({
@@ -39,10 +39,10 @@ export interface McpToolOptions {
 export function McpTool(options: McpToolOptions): MethodDecorator {
   return (target: Object, propertyKey: string | symbol, _descriptor: PropertyDescriptor) => {
     const constructor = target.constructor;
-    
-    const existingTools: McpToolMetadata[] = 
+
+    const existingTools: McpToolMetadata[] =
       Reflect.getMetadata(METADATA_KEYS.TOOLS, constructor) ?? [];
-    
+
     const metadata: McpToolMetadata = {
       name: options.name,
       description: options.description,
@@ -50,7 +50,7 @@ export function McpTool(options: McpToolOptions): MethodDecorator {
       propertyKey,
       target: constructor,
     };
-    
+
     Reflect.defineMetadata(METADATA_KEYS.TOOLS, [...existingTools, metadata], constructor);
   };
 }
