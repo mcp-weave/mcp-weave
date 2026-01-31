@@ -1,5 +1,5 @@
-import { Server, StdioServerTransport, AnyObjectSchema } from './sdk-compat.js';
 
+import { Server, StdioServerTransport, AnyObjectSchema } from './sdk-compat.js';
 import { extractMetadata } from '../metadata/storage.js';
 
 /**
@@ -72,22 +72,21 @@ export class McpRuntimeServer {
     // Call tool
     this.server.setRequestHandler(
       { method: 'tools/call' } as unknown as AnyObjectSchema,
-      async (request: any) => {
-        const toolName = request.params.name;
+      async (request: Record<string, unknown>) => {
+        if (!request || typeof request !== 'object') throw new Error('Invalid request');
+        const params = (request as { params?: Record<string, unknown> }).params;
+        if (!params || typeof params !== 'object') throw new Error('Invalid params');
+        const toolName = params.name as string;
         const tool = tools.find(t => t.name === toolName);
-
         if (!tool) {
           throw new Error(`Unknown tool: ${toolName}`);
         }
-
-        const method = (this.instance as any)[tool.propertyKey];
+        const method = (this.instance as Record<string, unknown>)[tool.propertyKey];
         if (typeof method !== 'function') {
           throw new Error(`Method ${String(tool.propertyKey)} not found`);
         }
-
-        const args = this.resolveToolArgs(tool.propertyKey, request.params.arguments ?? {});
+        const args = this.resolveToolArgs(tool.propertyKey, (params.arguments ?? {}) as Record<string, unknown>);
         const result = await method.apply(this.instance, args);
-
         return {
           content: [
             {
@@ -120,23 +119,23 @@ export class McpRuntimeServer {
     // Read resource
     this.server.setRequestHandler(
       { method: 'resources/read' } as unknown as AnyObjectSchema,
-      async (request: any) => {
-        const uri = request.params.uri as string;
-
+      async (request: Record<string, unknown>) => {
+        if (!request || typeof request !== 'object') throw new Error('Invalid request');
+        const params = (request as { params?: Record<string, unknown> }).params;
+        if (!params || typeof params !== 'object') throw new Error('Invalid params');
+        const uri = params.uri as string;
         // Find matching resource
         for (const resource of resources) {
-          const params = this.extractUriParams(resource.uri, uri);
-          if (params) {
-            const method = (this.instance as any)[resource.propertyKey];
+          const uriParams = this.extractUriParams(resource.uri, uri);
+          if (uriParams) {
+            const method = (this.instance as Record<string, unknown>)[resource.propertyKey];
             if (typeof method !== 'function') {
               throw new Error(`Method ${String(resource.propertyKey)} not found`);
             }
-
-            const args = this.resolveResourceArgs(resource.propertyKey, params);
+            const args = this.resolveResourceArgs(resource.propertyKey, uriParams);
             return await method.apply(this.instance, args);
           }
         }
-
         throw new Error(`Resource not found: ${uri}`);
       }
     );
@@ -161,20 +160,20 @@ export class McpRuntimeServer {
     // Get prompt
     this.server.setRequestHandler(
       { method: 'prompts/get' } as unknown as AnyObjectSchema,
-      async (request: any) => {
-        const promptName = request.params.name;
+      async (request: Record<string, unknown>) => {
+        if (!request || typeof request !== 'object') throw new Error('Invalid request');
+        const params = (request as { params?: Record<string, unknown> }).params;
+        if (!params || typeof params !== 'object') throw new Error('Invalid params');
+        const promptName = params.name as string;
         const prompt = prompts.find(p => p.name === promptName);
-
         if (!prompt) {
           throw new Error(`Unknown prompt: ${promptName}`);
         }
-
-        const method = (this.instance as any)[prompt.propertyKey];
+        const method = (this.instance as Record<string, unknown>)[prompt.propertyKey];
         if (typeof method !== 'function') {
           throw new Error(`Method ${String(prompt.propertyKey)} not found`);
         }
-
-        const args = this.resolvePromptArgs(prompt.propertyKey, request.params.arguments ?? {});
+        const args = this.resolvePromptArgs(prompt.propertyKey, (params.arguments ?? {}) as Record<string, unknown>);
         return await method.apply(this.instance, args);
       }
     );
