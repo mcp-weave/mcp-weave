@@ -1,5 +1,8 @@
 import 'reflect-metadata';
-import { METADATA_KEYS, extractMetadata, type ScannedMetadata ,
+import {
+  METADATA_KEYS,
+  extractMetadata,
+  type ScannedMetadata,
   McpServerMetadata,
   McpToolMetadata,
   McpResourceMetadata,

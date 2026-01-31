@@ -6,8 +6,6 @@ import { Command } from 'commander';
 import fs from 'fs-extra';
 import ora from 'ora';
 
-
-
 export const generateCommand = new Command('generate')
   .description('Generate MCP server from spec file')
   .option('-s, --spec <path>', 'Path to mcp-spec.yaml', 'mcp-spec.yaml')

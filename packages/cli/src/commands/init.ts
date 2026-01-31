@@ -5,7 +5,6 @@ import { Command } from 'commander';
 import fs from 'fs-extra';
 import ora from 'ora';
 
-
 const TEMPLATES = {
   nestjs: {
     files: [

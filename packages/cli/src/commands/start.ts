@@ -5,7 +5,6 @@ import { Command } from 'commander';
 import fs from 'fs-extra';
 import ora from 'ora';
 
-
 export const startCommand = new Command('start')
   .description('Start MCP server')
   .option('-s, --spec <path>', 'Path to mcp-spec.yaml', 'mcp-spec.yaml')
