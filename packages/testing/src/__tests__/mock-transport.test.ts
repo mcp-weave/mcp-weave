@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+
 import { MockTransport, createMockTransport, type MockMessage } from '../mock-transport.js';
 
 describe('MockTransport', () => {

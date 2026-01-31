@@ -1,4 +1,6 @@
+import type { McpSpec } from '@mcp-weave/core';
 import { describe, it, expect } from 'vitest';
+
 import {
   assertHasTool,
   assertHasResource,
@@ -8,7 +10,6 @@ import {
   assertResourceContent,
   assertPromptHasMessage,
 } from '../assertions.js';
-import type { McpSpec } from '@mcp-weave/core';
 
 const testSpec: McpSpec = {
   version: '1.0',

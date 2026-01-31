@@ -9,37 +9,37 @@ import type {
  * Mock MCP server for testing
  */
 export class McpTestServer {
-  private toolHandlers: Map<string, (args: any) => any> = new Map();
-  private resourceHandlers: Map<string, (uri: string) => any> = new Map();
-  private promptHandlers: Map<string, (args: any) => any> = new Map();
+  private toolHandlers: Map<string, (args: unknown) => unknown> = new Map();
+  private resourceHandlers: Map<string, (uri: string) => unknown> = new Map();
+  private promptHandlers: Map<string, (args: unknown) => unknown> = new Map();
 
   constructor(private spec?: McpSpec) {}
 
   /**
    * Register a tool handler
    */
-  registerTool(name: string, handler: (args: any) => any): void {
+  registerTool(name: string, handler: (args: unknown) => unknown): void {
     this.toolHandlers.set(name, handler);
   }
 
   /**
    * Register a resource handler
    */
-  registerResource(uriPattern: string, handler: (uri: string) => any): void {
+  registerResource(uriPattern: string, handler: (uri: string) => unknown): void {
     this.resourceHandlers.set(uriPattern, handler);
   }
 
   /**
    * Register a prompt handler
    */
-  registerPrompt(name: string, handler: (args: any) => any): void {
+  registerPrompt(name: string, handler: (args: unknown) => unknown): void {
     this.promptHandlers.set(name, handler);
   }
 
   /**
    * Call a tool
    */
-  async callTool(name: string, args: any = {}): Promise<any> {
+  async callTool(name: string, args: unknown = {}): Promise<unknown> {
     const handler = this.toolHandlers.get(name);
     if (!handler) {
       throw new Error(`Tool not found: ${name}`);
@@ -50,7 +50,7 @@ export class McpTestServer {
   /**
    * Read a resource
    */
-  async readResource(uri: string): Promise<any> {
+  async readResource(uri: string): Promise<unknown> {
     for (const [pattern, handler] of this.resourceHandlers) {
       if (this.matchesPattern(pattern, uri)) {
         return handler(uri);
@@ -62,7 +62,7 @@ export class McpTestServer {
   /**
    * Get a prompt
    */
-  async getPrompt(name: string, args: any = {}): Promise<any> {
+  async getPrompt(name: string, args: unknown = {}): Promise<unknown> {
     const handler = this.promptHandlers.get(name);
     if (!handler) {
       throw new Error(`Prompt not found: ${name}`);

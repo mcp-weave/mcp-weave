@@ -43,7 +43,7 @@ export interface McpResourceOptions {
  * ```
  */
 export function McpResource(options: McpResourceOptions): MethodDecorator {
-  return (target: Object, propertyKey: string | symbol, _descriptor: PropertyDescriptor) => {
+  return (target: object, propertyKey: string | symbol, _descriptor: PropertyDescriptor) => {
     const constructor = target.constructor;
 
     const existingResources: McpResourceMetadata[] =

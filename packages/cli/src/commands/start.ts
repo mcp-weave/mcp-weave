@@ -1,8 +1,10 @@
-import { Command } from 'commander';
-import chalk from 'chalk';
-import ora from 'ora';
-import fs from 'fs-extra';
 import path from 'path';
+
+import chalk from 'chalk';
+import { Command } from 'commander';
+import fs from 'fs-extra';
+import ora from 'ora';
+
 
 export const startCommand = new Command('start')
   .description('Start MCP server')

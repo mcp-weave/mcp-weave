@@ -3,10 +3,10 @@
 
 import { Command } from 'commander';
 
+import { extractCommand } from './commands/extract.js';
 import { generateCommand } from './commands/generate.js';
 import { initCommand } from './commands/init.js';
 import { startCommand } from './commands/start.js';
-import { extractCommand } from './commands/extract.js';
 
 const program = new Command();
 

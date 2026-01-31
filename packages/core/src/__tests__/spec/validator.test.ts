@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+
 import { validateSpec, isValidSpec, SpecValidationError } from '../../spec/validator.js';
 
 describe('validateSpec', () => {

@@ -1,6 +1,11 @@
 import 'reflect-metadata';
 import { describe, it, expect } from 'vitest';
-import { METADATA_KEYS } from '@mcp-weave/core';
+
+import { McpPrompt } from '../../decorators/mcp-prompt.js';
+import { McpResource } from '../../decorators/mcp-resource.js';
+import { McpServer } from '../../decorators/mcp-server.js';
+import { McpTool } from '../../decorators/mcp-tool.js';
+import { McpInput, McpParam, McpPromptArg } from '../../decorators/params.js';
 import {
   isMcpServer,
   getMcpServers,
@@ -11,11 +16,6 @@ import {
   getParamsMetadata,
   extractMetadata,
 } from '../../metadata/storage.js';
-import { McpServer } from '../../decorators/mcp-server.js';
-import { McpTool } from '../../decorators/mcp-tool.js';
-import { McpResource } from '../../decorators/mcp-resource.js';
-import { McpPrompt } from '../../decorators/mcp-prompt.js';
-import { McpInput, McpParam, McpPromptArg } from '../../decorators/params.js';
 
 describe('isMcpServer', () => {
   it('should return true for decorated class', () => {

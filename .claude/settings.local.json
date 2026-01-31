@@ -7,7 +7,12 @@
       "Bash(git push:*)",
       "Bash(gh pr create:*)",
       "Bash(pnpm format:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(pnpm --filter @mcp-weave/testing lint:*)",
+      "Bash(npx eslint:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm lint:fix:*)"
     ]
   }
 }

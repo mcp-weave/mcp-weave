@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+
 import { generateServer, type GeneratorOptions } from '../../generator/server.js';
 import type { McpSpec } from '../../spec/types.js';
 

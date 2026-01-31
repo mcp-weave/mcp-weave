@@ -1,6 +1,7 @@
-import { describe, it, expect } from 'vitest';
-import { McpTestServer, createTestServer } from '../mock-server.js';
 import type { McpSpec } from '@mcp-weave/core';
+import { describe, it, expect } from 'vitest';
+
+import { McpTestServer, createTestServer } from '../mock-server.js';
 
 describe('McpTestServer', () => {
   describe('tools', () => {

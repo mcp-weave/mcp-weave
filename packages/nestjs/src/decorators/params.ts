@@ -14,7 +14,7 @@ import type { McpParamMetadata } from '@mcp-weave/core';
  * ```
  */
 export function McpInput(): ParameterDecorator {
-  return (target: Object, propertyKey: string | symbol | undefined, parameterIndex: number) => {
+  return (target: object, propertyKey: string | symbol | undefined, parameterIndex: number) => {
     if (!propertyKey) return;
 
     const constructor = target.constructor;
@@ -44,7 +44,7 @@ export function McpInput(): ParameterDecorator {
  * ```
  */
 export function McpParam(name: string): ParameterDecorator {
-  return (target: Object, propertyKey: string | symbol | undefined, parameterIndex: number) => {
+  return (target: object, propertyKey: string | symbol | undefined, parameterIndex: number) => {
     if (!propertyKey) return;
 
     const constructor = target.constructor;
@@ -75,7 +75,7 @@ export function McpParam(name: string): ParameterDecorator {
  * ```
  */
 export function McpPromptArg(name: string): ParameterDecorator {
-  return (target: Object, propertyKey: string | symbol | undefined, parameterIndex: number) => {
+  return (target: object, propertyKey: string | symbol | undefined, parameterIndex: number) => {
     if (!propertyKey) return;
 
     const constructor = target.constructor;

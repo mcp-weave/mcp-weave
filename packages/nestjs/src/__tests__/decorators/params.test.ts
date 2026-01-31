@@ -1,6 +1,7 @@
 import 'reflect-metadata';
-import { describe, it, expect } from 'vitest';
 import { METADATA_KEYS } from '@mcp-weave/core';
+import { describe, it, expect } from 'vitest';
+
 import { McpInput, McpParam, McpPromptArg } from '../../decorators/params.js';
 
 describe('@McpInput', () => {

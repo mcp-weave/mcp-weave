@@ -1,10 +1,12 @@
-import { Command } from 'commander';
-import chalk from 'chalk';
-import ora from 'ora';
-import fs from 'fs-extra';
 import path from 'path';
 
 import { parseAndValidateSpec, generateServer } from '@mcp-weave/core';
+import chalk from 'chalk';
+import { Command } from 'commander';
+import fs from 'fs-extra';
+import ora from 'ora';
+
+
 
 export const generateCommand = new Command('generate')
   .description('Generate MCP server from spec file')

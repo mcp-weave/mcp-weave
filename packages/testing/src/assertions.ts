@@ -41,7 +41,7 @@ export function assertHasPrompt(spec: McpSpec, promptName: string): PromptDefini
 /**
  * Assert tool call result
  */
-export function assertToolResult(result: any, expected: any): void {
+export function assertToolResult(result: unknown, expected: unknown): void {
   const resultStr = JSON.stringify(result);
   const expectedStr = JSON.stringify(expected);
   if (resultStr !== expectedStr) {
@@ -52,7 +52,7 @@ export function assertToolResult(result: any, expected: any): void {
 /**
  * Assert that a tool result contains specific properties
  */
-export function assertToolResultContains(result: any, partial: Record<string, any>): void {
+export function assertToolResultContains(result: unknown, partial: Record<string, unknown>): void {
   for (const [key, value] of Object.entries(partial)) {
     if (result[key] !== value) {
       throw new Error(
@@ -65,7 +65,7 @@ export function assertToolResultContains(result: any, partial: Record<string, an
 /**
  * Assert resource content
  */
-export function assertResourceContent(resource: any, expectedContent: any): void {
+export function assertResourceContent(resource: unknown, expectedContent: unknown): void {
   const contents = resource.contents?.[0];
   if (!contents) {
     throw new Error('Expected resource to have contents');
@@ -84,12 +84,12 @@ export function assertResourceContent(resource: any, expectedContent: any): void
  * Assert prompt messages
  */
 export function assertPromptHasMessage(
-  prompt: any,
+  prompt: unknown,
   role: 'user' | 'assistant',
   contentIncludes: string
 ): void {
   const messages = prompt.messages ?? [];
-  const found = messages.find((m: any) => {
+  const found = messages.find((m: unknown) => {
     if (m.role !== role) return false;
     const content = typeof m.content === 'string' ? m.content : m.content?.text;
     return content?.includes(contentIncludes);

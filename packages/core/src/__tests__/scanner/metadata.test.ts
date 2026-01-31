@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import { describe, it, expect, beforeEach } from 'vitest';
+
 import {
   METADATA_KEYS,
   extractMetadata,

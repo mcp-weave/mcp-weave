@@ -39,7 +39,7 @@ export interface McpPromptOptions {
  * ```
  */
 export function McpPrompt(options: McpPromptOptions): MethodDecorator {
-  return (target: Object, propertyKey: string | symbol, _descriptor: PropertyDescriptor) => {
+  return (target: object, propertyKey: string | symbol, _descriptor: PropertyDescriptor) => {
     const constructor = target.constructor;
 
     const existingPrompts: McpPromptMetadata[] =

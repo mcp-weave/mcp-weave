@@ -18,7 +18,7 @@ export interface McpRuntimeOptions {
  */
 export class McpRuntimeServer {
   private server: Server;
-  private instance: any;
+  private instance: unknown;
   private metadata;
 
   constructor(target: Function, _options: McpRuntimeOptions = {}) {
@@ -43,7 +43,7 @@ export class McpRuntimeServer {
     );
 
     // Create instance of the target class
-    this.instance = new (target as any)();
+    this.instance = new (target as unknown as { new (): unknown })();
 
     this.setupHandlers();
   }
@@ -59,7 +59,7 @@ export class McpRuntimeServer {
     if (tools.length === 0) return;
 
     // List tools
-    this.server.setRequestHandler({ method: 'tools/list' } as any, async () => ({
+    this.server.setRequestHandler({ method: 'tools/list' } as unknown, async () => ({
       tools: tools.map(tool => ({
         name: tool.name,
         description: tool.description,
@@ -68,7 +68,7 @@ export class McpRuntimeServer {
     }));
 
     // Call tool
-    this.server.setRequestHandler({ method: 'tools/call' } as any, async (request: any) => {
+    this.server.setRequestHandler({ method: 'tools/call' } as unknown, async (request: unknown) => {
       const toolName = request.params.name;
       const tool = tools.find(t => t.name === toolName);
 
@@ -100,7 +100,7 @@ export class McpRuntimeServer {
     if (resources.length === 0) return;
 
     // List resources
-    this.server.setRequestHandler({ method: 'resources/list' } as any, async () => ({
+    this.server.setRequestHandler({ method: 'resources/list' } as unknown, async () => ({
       resources: resources.map(resource => ({
         uri: resource.uri,
         name: resource.name,
@@ -110,7 +110,7 @@ export class McpRuntimeServer {
     }));
 
     // Read resource
-    this.server.setRequestHandler({ method: 'resources/read' } as any, async (request: any) => {
+    this.server.setRequestHandler({ method: 'resources/read' } as unknown, async (request: unknown) => {
       const uri = request.params.uri as string;
 
       // Find matching resource
@@ -136,7 +136,7 @@ export class McpRuntimeServer {
     if (prompts.length === 0) return;
 
     // List prompts
-    this.server.setRequestHandler({ method: 'prompts/list' } as any, async () => ({
+    this.server.setRequestHandler({ method: 'prompts/list' } as unknown, async () => ({
       prompts: prompts.map(prompt => ({
         name: prompt.name,
         description: prompt.description,
@@ -145,7 +145,7 @@ export class McpRuntimeServer {
     }));
 
     // Get prompt
-    this.server.setRequestHandler({ method: 'prompts/get' } as any, async (request: any) => {
+    this.server.setRequestHandler({ method: 'prompts/get' } as unknown, async (request: unknown) => {
       const promptName = request.params.name;
       const prompt = prompts.find(p => p.name === promptName);
 
@@ -163,7 +163,7 @@ export class McpRuntimeServer {
     });
   }
 
-  private resolveToolArgs(propertyKey: string | symbol, input: Record<string, any>): any[] {
+  private resolveToolArgs(propertyKey: string | symbol, input: Record<string, unknown>): unknown[] {
     const params = this.metadata.params.filter(
       p => p.propertyKey === propertyKey && p.type === 'input'
     );
@@ -172,7 +172,7 @@ export class McpRuntimeServer {
       return [input];
     }
 
-    const args: any[] = [];
+    const args: unknown[] = [];
     for (const param of params) {
       args[param.parameterIndex] = input;
     }
@@ -182,12 +182,12 @@ export class McpRuntimeServer {
   private resolveResourceArgs(
     propertyKey: string | symbol,
     uriParams: Record<string, string>
-  ): any[] {
+  ): unknown[] {
     const params = this.metadata.params.filter(
       p => p.propertyKey === propertyKey && p.type === 'param'
     );
 
-    const args: any[] = [];
+    const args: unknown[] = [];
     for (const param of params) {
       if (param.name) {
         args[param.parameterIndex] = uriParams[param.name];
@@ -196,12 +196,12 @@ export class McpRuntimeServer {
     return args;
   }
 
-  private resolvePromptArgs(propertyKey: string | symbol, promptArgs: Record<string, any>): any[] {
+  private resolvePromptArgs(propertyKey: string | symbol, promptArgs: Record<string, unknown>): unknown[] {
     const params = this.metadata.params.filter(
       p => p.propertyKey === propertyKey && p.type === 'promptArg'
     );
 
-    const args: any[] = [];
+    const args: unknown[] = [];
     for (const param of params) {
       if (param.name) {
         args[param.parameterIndex] = promptArgs[param.name];

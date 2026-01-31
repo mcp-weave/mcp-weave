@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+
 import { parseSpec, stringifySpec, parseAndValidateSpec } from '../../spec/parser.js';
 
 describe('parseSpec', () => {

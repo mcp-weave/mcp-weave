@@ -1,11 +1,11 @@
-import { Command } from 'commander';
-import chalk from 'chalk';
-import ora from 'ora';
-import fs from 'fs-extra';
 import path from 'path';
 
 import { stringifySpec } from '@mcp-weave/core';
 import type { McpSpec } from '@mcp-weave/core';
+import chalk from 'chalk';
+import { Command } from 'commander';
+import fs from 'fs-extra';
+import ora from 'ora';
 
 export const extractCommand = new Command('extract')
   .description('Extract MCP spec from annotated code (coming soon)')

@@ -37,7 +37,7 @@ export interface McpToolOptions {
  * ```
  */
 export function McpTool(options: McpToolOptions): MethodDecorator {
-  return (target: Object, propertyKey: string | symbol, _descriptor: PropertyDescriptor) => {
+  return (target: object, propertyKey: string | symbol, _descriptor: PropertyDescriptor) => {
     const constructor = target.constructor;
 
     const existingTools: McpToolMetadata[] =

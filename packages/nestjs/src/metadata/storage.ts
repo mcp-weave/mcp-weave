@@ -1,6 +1,5 @@
 import 'reflect-metadata';
-import { METADATA_KEYS, extractMetadata, type ScannedMetadata } from '@mcp-weave/core';
-import type {
+import { METADATA_KEYS, extractMetadata, type ScannedMetadata ,
   McpServerMetadata,
   McpToolMetadata,
   McpResourceMetadata,
