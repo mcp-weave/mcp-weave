@@ -1,5 +1,4 @@
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { Server, StdioServerTransport, AnyObjectSchema } from './sdk-compat.js';
 
 import { extractMetadata } from '../metadata/storage.js';
 
@@ -59,7 +58,7 @@ export class McpRuntimeServer {
     if (tools.length === 0) return;
 
     // List tools
-    this.server.setRequestHandler({ method: 'tools/list' } as unknown, async () => ({
+    this.server.setRequestHandler(({ method: 'tools/list' } as unknown) as AnyObjectSchema, async () => ({
       tools: tools.map(tool => ({
         name: tool.name,
         description: tool.description,
@@ -68,7 +67,7 @@ export class McpRuntimeServer {
     }));
 
     // Call tool
-    this.server.setRequestHandler({ method: 'tools/call' } as unknown, async (request: unknown) => {
+    this.server.setRequestHandler(({ method: 'tools/call' } as unknown) as AnyObjectSchema, async (request: any) => {
       const toolName = request.params.name;
       const tool = tools.find(t => t.name === toolName);
 
@@ -76,7 +75,7 @@ export class McpRuntimeServer {
         throw new Error(`Unknown tool: ${toolName}`);
       }
 
-      const method = this.instance[tool.propertyKey];
+      const method = (this.instance as any)[tool.propertyKey];
       if (typeof method !== 'function') {
         throw new Error(`Method ${String(tool.propertyKey)} not found`);
       }
@@ -100,7 +99,7 @@ export class McpRuntimeServer {
     if (resources.length === 0) return;
 
     // List resources
-    this.server.setRequestHandler({ method: 'resources/list' } as unknown, async () => ({
+    this.server.setRequestHandler(({ method: 'resources/list' } as unknown) as AnyObjectSchema, async () => ({
       resources: resources.map(resource => ({
         uri: resource.uri,
         name: resource.name,
@@ -111,15 +110,15 @@ export class McpRuntimeServer {
 
     // Read resource
     this.server.setRequestHandler(
-      { method: 'resources/read' } as unknown,
-      async (request: unknown) => {
+      ({ method: 'resources/read' } as unknown) as AnyObjectSchema,
+      async (request: any) => {
         const uri = request.params.uri as string;
 
         // Find matching resource
         for (const resource of resources) {
           const params = this.extractUriParams(resource.uri, uri);
           if (params) {
-            const method = this.instance[resource.propertyKey];
+            const method = (this.instance as any)[resource.propertyKey];
             if (typeof method !== 'function') {
               throw new Error(`Method ${String(resource.propertyKey)} not found`);
             }
@@ -139,7 +138,7 @@ export class McpRuntimeServer {
     if (prompts.length === 0) return;
 
     // List prompts
-    this.server.setRequestHandler({ method: 'prompts/list' } as unknown, async () => ({
+    this.server.setRequestHandler(({ method: 'prompts/list' } as unknown) as AnyObjectSchema, async () => ({
       prompts: prompts.map(prompt => ({
         name: prompt.name,
         description: prompt.description,
@@ -149,8 +148,8 @@ export class McpRuntimeServer {
 
     // Get prompt
     this.server.setRequestHandler(
-      { method: 'prompts/get' } as unknown,
-      async (request: unknown) => {
+      ({ method: 'prompts/get' } as unknown) as AnyObjectSchema,
+      async (request: any) => {
         const promptName = request.params.name;
         const prompt = prompts.find(p => p.name === promptName);
 
@@ -158,7 +157,7 @@ export class McpRuntimeServer {
           throw new Error(`Unknown prompt: ${promptName}`);
         }
 
-        const method = this.instance[prompt.propertyKey];
+        const method = (this.instance as any)[prompt.propertyKey];
         if (typeof method !== 'function') {
           throw new Error(`Method ${String(prompt.propertyKey)} not found`);
         }
