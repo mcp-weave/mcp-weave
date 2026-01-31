@@ -7,6 +7,7 @@
 ## 📅 Sessão: 31/01/2026
 
 ### Estado Atual
+
 - [x] Documento de contexto criado (mcp-weave.md)
 - [x] Estrutura do monorepo
 - [x] Package @mcp-weave/core
@@ -15,6 +16,7 @@
 - [x] Package @mcp-weave/testing
 
 ### Próximos Passos
+
 1. ~~Inicializar estrutura do monorepo com pnpm workspaces~~ ✅
 2. ~~Configurar Turbo para builds~~ ✅
 3. ~~Configurar TypeScript, ESLint, Prettier~~ ✅
@@ -29,12 +31,15 @@
 ## 🧠 Decisões de Arquitetura
 
 ### Monorepo com pnpm + Turbo
+
 **Por quê?**
+
 - pnpm é mais eficiente em espaço e velocidade
 - Turbo oferece cache inteligente e builds paralelos
 - Facilita desenvolvimento coordenado entre packages
 
 ### Ordem de Implementação
+
 1. **core** primeiro - é a base de tudo
 2. **nestjs** segundo - decorators dependem do core
 3. **cli** terceiro - usa core para parsing/generation
@@ -45,6 +50,7 @@
 ## 📝 Notas de Implementação
 
 ### @mcp-weave/core
+
 ```
 Responsabilidades:
 ├── spec/
@@ -60,6 +66,7 @@ Responsabilidades:
 ```
 
 ### @mcp-weave/nestjs
+
 ```
 Responsabilidades:
 ├── decorators/
@@ -76,6 +83,7 @@ Responsabilidades:
 ```
 
 ### @mcp-weave/cli
+
 ```
 Responsabilidades:
 ├── commands/
@@ -91,20 +99,20 @@ Responsabilidades:
 
 ## 🔄 Progresso
 
-| Task | Status | Notas |
-|------|--------|-------|
-| Criar REASONING.md | ✅ | Este arquivo |
-| Estrutura monorepo | ✅ | pnpm + turbo + changesets |
-| Configuração base | ✅ | tsconfig, eslint, prettier |
-| @mcp-weave/core | ✅ | Parser, validator, generator (51 tests) |
-| @mcp-weave/nestjs | ✅ | Decorators + runtime server (42 tests) |
-| @mcp-weave/cli | ✅ | generate, init, start, extract (12 tests) |
-| @mcp-weave/testing | ✅ | Mock server, transport, assertions (47 tests) |
-| Testes unitários | ✅ | 152 testes passando |
-| @mcp-weave/core | ✅ | Parser, validator, generator |
-| @mcp-weave/nestjs | ✅ | Decorators + runtime server |
-| @mcp-weave/cli | ✅ | generate, init, start, extract |
-| @mcp-weave/testing | ✅ | Mock server, transport, assertions |
+| Task               | Status | Notas                                         |
+| ------------------ | ------ | --------------------------------------------- |
+| Criar REASONING.md | ✅     | Este arquivo                                  |
+| Estrutura monorepo | ✅     | pnpm + turbo + changesets                     |
+| Configuração base  | ✅     | tsconfig, eslint, prettier                    |
+| @mcp-weave/core    | ✅     | Parser, validator, generator (51 tests)       |
+| @mcp-weave/nestjs  | ✅     | Decorators + runtime server (42 tests)        |
+| @mcp-weave/cli     | ✅     | generate, init, start, extract (12 tests)     |
+| @mcp-weave/testing | ✅     | Mock server, transport, assertions (47 tests) |
+| Testes unitários   | ✅     | 152 testes passando                           |
+| @mcp-weave/core    | ✅     | Parser, validator, generator                  |
+| @mcp-weave/nestjs  | ✅     | Decorators + runtime server                   |
+| @mcp-weave/cli     | ✅     | generate, init, start, extract                |
+| @mcp-weave/testing | ✅     | Mock server, transport, assertions            |
 
 ---
 

@@ -62,7 +62,7 @@ describe('MockTransport', () => {
     });
 
     it('should send response from handler', () => {
-      transport.onMethod('tools/list', (msg) => ({
+      transport.onMethod('tools/list', msg => ({
         jsonrpc: '2.0',
         id: msg.id,
         result: { tools: [] },

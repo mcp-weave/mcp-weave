@@ -1,4 +1,9 @@
-import type { McpSpec, ToolDefinition, ResourceDefinition, PromptDefinition } from '@mcp-weave/core';
+import type {
+  McpSpec,
+  ToolDefinition,
+  ResourceDefinition,
+  PromptDefinition,
+} from '@mcp-weave/core';
 
 /**
  * Assert that a spec has a specific tool
@@ -65,11 +70,11 @@ export function assertResourceContent(resource: any, expectedContent: any): void
   if (!contents) {
     throw new Error('Expected resource to have contents');
   }
-  
+
   const actual = contents.text ? JSON.parse(contents.text) : contents;
   const actualStr = JSON.stringify(actual);
   const expectedStr = JSON.stringify(expectedContent);
-  
+
   if (actualStr !== expectedStr) {
     throw new Error(`Resource content mismatch.\nExpected: ${expectedStr}\nActual: ${actualStr}`);
   }
@@ -78,17 +83,19 @@ export function assertResourceContent(resource: any, expectedContent: any): void
 /**
  * Assert prompt messages
  */
-export function assertPromptHasMessage(prompt: any, role: 'user' | 'assistant', contentIncludes: string): void {
+export function assertPromptHasMessage(
+  prompt: any,
+  role: 'user' | 'assistant',
+  contentIncludes: string
+): void {
   const messages = prompt.messages ?? [];
   const found = messages.find((m: any) => {
     if (m.role !== role) return false;
     const content = typeof m.content === 'string' ? m.content : m.content?.text;
     return content?.includes(contentIncludes);
   });
-  
+
   if (!found) {
-    throw new Error(
-      `Expected prompt to have ${role} message containing '${contentIncludes}'`
-    );
+    throw new Error(`Expected prompt to have ${role} message containing '${contentIncludes}'`);
   }
 }

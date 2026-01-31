@@ -10,12 +10,12 @@ export interface McpServerOptions {
    * Server name
    */
   name: string;
-  
+
   /**
    * Server version (default: '1.0.0')
    */
   version?: string;
-  
+
   /**
    * Server description
    */
@@ -24,7 +24,7 @@ export interface McpServerOptions {
 
 /**
  * Marks a class as an MCP server
- * 
+ *
  * @example
  * ```typescript
  * @McpServer({ name: 'my-service', version: '1.0.0' })
@@ -41,7 +41,7 @@ export function McpServer(options: McpServerOptions): ClassDecorator {
       description: options.description,
       target,
     };
-    
+
     Reflect.defineMetadata(METADATA_KEYS.SERVER, metadata, target);
   };
 }

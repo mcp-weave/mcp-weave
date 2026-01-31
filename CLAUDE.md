@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 MCP-Weave is a TypeScript monorepo that provides "Swagger for Model Context Protocol" - transforms code into MCP servers using decorators. It supports two development flows:
+
 - **Code-first**: Write decorated classes → extract to mcp-spec.yaml
 - **Spec-first**: Write mcp-spec.yaml → generate boilerplate code
 
@@ -44,16 +45,17 @@ pnpm dev
 
 ## Monorepo Structure
 
-| Package | Purpose |
-|---------|---------|
-| `@mcp-weave/core` | Spec parsing (YAML), validation (Zod), metadata scanning, code generation |
-| `@mcp-weave/cli` | CLI commands: `init`, `generate`, `start`, `extract` |
-| `@mcp-weave/nestjs` | NestJS decorators (`@McpServer`, `@McpTool`, `@McpResource`, `@McpPrompt`) and runtime |
-| `@mcp-weave/testing` | Mock server, mock transport, test assertions |
+| Package              | Purpose                                                                                |
+| -------------------- | -------------------------------------------------------------------------------------- |
+| `@mcp-weave/core`    | Spec parsing (YAML), validation (Zod), metadata scanning, code generation              |
+| `@mcp-weave/cli`     | CLI commands: `init`, `generate`, `start`, `extract`                                   |
+| `@mcp-weave/nestjs`  | NestJS decorators (`@McpServer`, `@McpTool`, `@McpResource`, `@McpPrompt`) and runtime |
+| `@mcp-weave/testing` | Mock server, mock transport, test assertions                                           |
 
 ## Architecture
 
 ### Core Flow
+
 ```
 Decorators (@McpTool, etc.)
     ↓ scanner/metadata.ts
@@ -67,17 +69,20 @@ MCP Server Code
 ### Key Files by Package
 
 **core:**
+
 - `src/spec/types.ts` - Zod schemas defining McpSpec structure
 - `src/spec/parser.ts` - YAML parse/stringify utilities
 - `src/scanner/metadata.ts` - Extract decorator metadata from classes
 - `src/generator/server.ts` - Generate server code from spec
 
 **nestjs:**
+
 - `src/decorators/*.ts` - All decorator implementations
 - `src/metadata/storage.ts` - Reflect metadata storage/retrieval
 - `src/runtime/server.ts` - Runtime MCP server
 
 **cli:**
+
 - `src/commands/*.ts` - Each CLI command implementation
 
 ## Code Conventions
@@ -101,6 +106,7 @@ MCP Server Code
 ## Versioning
 
 Uses Changesets for version management:
+
 ```bash
 pnpm changeset          # Create a changeset
 pnpm version-packages   # Apply changesets to versions

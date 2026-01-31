@@ -34,7 +34,7 @@ export class MockTransport {
    */
   receive(message: MockMessage): void {
     this.receivedMessages.push(message);
-    
+
     if (message.method) {
       const handler = this.responseHandlers.get(message.method);
       if (handler) {

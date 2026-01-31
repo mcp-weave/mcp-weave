@@ -21,12 +21,9 @@ export class McpRuntimeServer {
   private instance: any;
   private metadata;
 
-  constructor(
-    target: Function,
-    _options: McpRuntimeOptions = {}
-  ) {
+  constructor(target: Function, _options: McpRuntimeOptions = {}) {
     this.metadata = extractMetadata(target);
-    
+
     if (!this.metadata.server) {
       throw new Error(`Class ${target.name} is not decorated with @McpServer`);
     }
@@ -62,46 +59,40 @@ export class McpRuntimeServer {
     if (tools.length === 0) return;
 
     // List tools
-    this.server.setRequestHandler(
-      { method: 'tools/list' } as any,
-      async () => ({
-        tools: tools.map(tool => ({
-          name: tool.name,
-          description: tool.description,
-          inputSchema: tool.inputSchema ?? { type: 'object' as const, properties: {} },
-        })),
-      })
-    );
+    this.server.setRequestHandler({ method: 'tools/list' } as any, async () => ({
+      tools: tools.map(tool => ({
+        name: tool.name,
+        description: tool.description,
+        inputSchema: tool.inputSchema ?? { type: 'object' as const, properties: {} },
+      })),
+    }));
 
     // Call tool
-    this.server.setRequestHandler(
-      { method: 'tools/call' } as any,
-      async (request: any) => {
-        const toolName = request.params.name;
-        const tool = tools.find(t => t.name === toolName);
-        
-        if (!tool) {
-          throw new Error(`Unknown tool: ${toolName}`);
-        }
+    this.server.setRequestHandler({ method: 'tools/call' } as any, async (request: any) => {
+      const toolName = request.params.name;
+      const tool = tools.find(t => t.name === toolName);
 
-        const method = this.instance[tool.propertyKey];
-        if (typeof method !== 'function') {
-          throw new Error(`Method ${String(tool.propertyKey)} not found`);
-        }
-
-        const args = this.resolveToolArgs(tool.propertyKey, request.params.arguments ?? {});
-        const result = await method.apply(this.instance, args);
-
-        return {
-          content: [
-            {
-              type: 'text',
-              text: typeof result === 'string' ? result : JSON.stringify(result),
-            },
-          ],
-        };
+      if (!tool) {
+        throw new Error(`Unknown tool: ${toolName}`);
       }
-    );
+
+      const method = this.instance[tool.propertyKey];
+      if (typeof method !== 'function') {
+        throw new Error(`Method ${String(tool.propertyKey)} not found`);
+      }
+
+      const args = this.resolveToolArgs(tool.propertyKey, request.params.arguments ?? {});
+      const result = await method.apply(this.instance, args);
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: typeof result === 'string' ? result : JSON.stringify(result),
+          },
+        ],
+      };
+    });
   }
 
   private setupResourceHandlers() {
@@ -109,41 +100,35 @@ export class McpRuntimeServer {
     if (resources.length === 0) return;
 
     // List resources
-    this.server.setRequestHandler(
-      { method: 'resources/list' } as any,
-      async () => ({
-        resources: resources.map(resource => ({
-          uri: resource.uri,
-          name: resource.name,
-          description: resource.description,
-          mimeType: resource.mimeType,
-        })),
-      })
-    );
+    this.server.setRequestHandler({ method: 'resources/list' } as any, async () => ({
+      resources: resources.map(resource => ({
+        uri: resource.uri,
+        name: resource.name,
+        description: resource.description,
+        mimeType: resource.mimeType,
+      })),
+    }));
 
     // Read resource
-    this.server.setRequestHandler(
-      { method: 'resources/read' } as any,
-      async (request: any) => {
-        const uri = request.params.uri as string;
-        
-        // Find matching resource
-        for (const resource of resources) {
-          const params = this.extractUriParams(resource.uri, uri);
-          if (params) {
-            const method = this.instance[resource.propertyKey];
-            if (typeof method !== 'function') {
-              throw new Error(`Method ${String(resource.propertyKey)} not found`);
-            }
+    this.server.setRequestHandler({ method: 'resources/read' } as any, async (request: any) => {
+      const uri = request.params.uri as string;
 
-            const args = this.resolveResourceArgs(resource.propertyKey, params);
-            return await method.apply(this.instance, args);
+      // Find matching resource
+      for (const resource of resources) {
+        const params = this.extractUriParams(resource.uri, uri);
+        if (params) {
+          const method = this.instance[resource.propertyKey];
+          if (typeof method !== 'function') {
+            throw new Error(`Method ${String(resource.propertyKey)} not found`);
           }
-        }
 
-        throw new Error(`Resource not found: ${uri}`);
+          const args = this.resolveResourceArgs(resource.propertyKey, params);
+          return await method.apply(this.instance, args);
+        }
       }
-    );
+
+      throw new Error(`Resource not found: ${uri}`);
+    });
   }
 
   private setupPromptHandlers() {
@@ -151,44 +136,38 @@ export class McpRuntimeServer {
     if (prompts.length === 0) return;
 
     // List prompts
-    this.server.setRequestHandler(
-      { method: 'prompts/list' } as any,
-      async () => ({
-        prompts: prompts.map(prompt => ({
-          name: prompt.name,
-          description: prompt.description,
-          arguments: prompt.arguments ?? [],
-        })),
-      })
-    );
+    this.server.setRequestHandler({ method: 'prompts/list' } as any, async () => ({
+      prompts: prompts.map(prompt => ({
+        name: prompt.name,
+        description: prompt.description,
+        arguments: prompt.arguments ?? [],
+      })),
+    }));
 
     // Get prompt
-    this.server.setRequestHandler(
-      { method: 'prompts/get' } as any,
-      async (request: any) => {
-        const promptName = request.params.name;
-        const prompt = prompts.find(p => p.name === promptName);
-        
-        if (!prompt) {
-          throw new Error(`Unknown prompt: ${promptName}`);
-        }
+    this.server.setRequestHandler({ method: 'prompts/get' } as any, async (request: any) => {
+      const promptName = request.params.name;
+      const prompt = prompts.find(p => p.name === promptName);
 
-        const method = this.instance[prompt.propertyKey];
-        if (typeof method !== 'function') {
-          throw new Error(`Method ${String(prompt.propertyKey)} not found`);
-        }
-
-        const args = this.resolvePromptArgs(prompt.propertyKey, request.params.arguments ?? {});
-        return await method.apply(this.instance, args);
+      if (!prompt) {
+        throw new Error(`Unknown prompt: ${promptName}`);
       }
-    );
+
+      const method = this.instance[prompt.propertyKey];
+      if (typeof method !== 'function') {
+        throw new Error(`Method ${String(prompt.propertyKey)} not found`);
+      }
+
+      const args = this.resolvePromptArgs(prompt.propertyKey, request.params.arguments ?? {});
+      return await method.apply(this.instance, args);
+    });
   }
 
   private resolveToolArgs(propertyKey: string | symbol, input: Record<string, any>): any[] {
     const params = this.metadata.params.filter(
       p => p.propertyKey === propertyKey && p.type === 'input'
     );
-    
+
     if (params.length === 0) {
       return [input];
     }
@@ -200,11 +179,14 @@ export class McpRuntimeServer {
     return args;
   }
 
-  private resolveResourceArgs(propertyKey: string | symbol, uriParams: Record<string, string>): any[] {
+  private resolveResourceArgs(
+    propertyKey: string | symbol,
+    uriParams: Record<string, string>
+  ): any[] {
     const params = this.metadata.params.filter(
       p => p.propertyKey === propertyKey && p.type === 'param'
     );
-    
+
     const args: any[] = [];
     for (const param of params) {
       if (param.name) {
@@ -218,7 +200,7 @@ export class McpRuntimeServer {
     const params = this.metadata.params.filter(
       p => p.propertyKey === propertyKey && p.type === 'promptArg'
     );
-    
+
     const args: any[] = [];
     for (const param of params) {
       if (param.name) {
@@ -235,17 +217,17 @@ export class McpRuntimeServer {
       paramNames.push(name);
       return '([^/]+)';
     });
-    
+
     const regex = new RegExp(`^${regexStr}$`);
     const match = uri.match(regex);
-    
+
     if (!match) return null;
-    
+
     const params: Record<string, string> = {};
     paramNames.forEach((name, index) => {
       params[name] = match[index + 1] ?? '';
     });
-    
+
     return params;
   }
 

@@ -80,11 +80,7 @@ describe('@McpPrompt', () => {
     const prompts = Reflect.getMetadata(METADATA_KEYS.PROMPTS, TestServer);
 
     expect(prompts).toHaveLength(3);
-    expect(prompts.map((p: { name: string }) => p.name)).toEqual([
-      'welcome',
-      'goodbye',
-      'help',
-    ]);
+    expect(prompts.map((p: { name: string }) => p.name)).toEqual(['welcome', 'goodbye', 'help']);
   });
 
   it('should handle prompts without arguments', () => {

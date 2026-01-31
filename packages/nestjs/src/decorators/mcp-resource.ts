@@ -10,17 +10,17 @@ export interface McpResourceOptions {
    * Resource URI template (e.g., 'user://{userId}')
    */
   uri: string;
-  
+
   /**
    * Resource name
    */
   name: string;
-  
+
   /**
    * Resource description
    */
   description?: string;
-  
+
   /**
    * MIME type (default: 'application/json')
    */
@@ -29,7 +29,7 @@ export interface McpResourceOptions {
 
 /**
  * Marks a method as an MCP resource
- * 
+ *
  * @example
  * ```typescript
  * @McpResource({
@@ -45,10 +45,10 @@ export interface McpResourceOptions {
 export function McpResource(options: McpResourceOptions): MethodDecorator {
   return (target: Object, propertyKey: string | symbol, _descriptor: PropertyDescriptor) => {
     const constructor = target.constructor;
-    
-    const existingResources: McpResourceMetadata[] = 
+
+    const existingResources: McpResourceMetadata[] =
       Reflect.getMetadata(METADATA_KEYS.RESOURCES, constructor) ?? [];
-    
+
     const metadata: McpResourceMetadata = {
       uri: options.uri,
       name: options.name,
@@ -57,7 +57,7 @@ export function McpResource(options: McpResourceOptions): MethodDecorator {
       propertyKey,
       target: constructor,
     };
-    
+
     Reflect.defineMetadata(METADATA_KEYS.RESOURCES, [...existingResources, metadata], constructor);
   };
 }

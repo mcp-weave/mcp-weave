@@ -1,4 +1,9 @@
-import type { McpSpec, ToolDefinition, ResourceDefinition, PromptDefinition } from '@mcp-weave/core';
+import type {
+  McpSpec,
+  ToolDefinition,
+  ResourceDefinition,
+  PromptDefinition,
+} from '@mcp-weave/core';
 
 /**
  * Mock MCP server for testing

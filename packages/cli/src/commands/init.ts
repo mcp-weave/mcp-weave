@@ -9,26 +9,31 @@ const TEMPLATES = {
     files: [
       {
         name: 'package.json',
-        content: (name: string) => JSON.stringify({
-          name,
-          version: '1.0.0',
-          scripts: {
-            build: 'nest build',
-            start: 'nest start',
-            'start:dev': 'nest start --watch',
-          },
-          dependencies: {
-            '@mcp-weave/nestjs': '^0.1.0',
-            '@nestjs/common': '^10.0.0',
-            '@nestjs/core': '^10.0.0',
-            'reflect-metadata': '^0.2.0',
-            rxjs: '^7.8.0',
-          },
-          devDependencies: {
-            '@nestjs/cli': '^10.0.0',
-            typescript: '^5.4.0',
-          },
-        }, null, 2),
+        content: (name: string) =>
+          JSON.stringify(
+            {
+              name,
+              version: '1.0.0',
+              scripts: {
+                build: 'nest build',
+                start: 'nest start',
+                'start:dev': 'nest start --watch',
+              },
+              dependencies: {
+                '@mcp-weave/nestjs': '^0.1.0',
+                '@nestjs/common': '^10.0.0',
+                '@nestjs/core': '^10.0.0',
+                'reflect-metadata': '^0.2.0',
+                rxjs: '^7.8.0',
+              },
+              devDependencies: {
+                '@nestjs/cli': '^10.0.0',
+                typescript: '^5.4.0',
+              },
+            },
+            null,
+            2
+          ),
       },
       {
         name: 'mcp-spec.yaml',
@@ -83,22 +88,27 @@ export class AppController {
     files: [
       {
         name: 'package.json',
-        content: (name: string) => JSON.stringify({
-          name,
-          version: '1.0.0',
-          type: 'module',
-          scripts: {
-            build: 'tsc',
-            start: 'node dist/index.js',
-          },
-          dependencies: {
-            '@modelcontextprotocol/sdk': '^1.0.0',
-          },
-          devDependencies: {
-            typescript: '^5.4.0',
-            '@types/node': '^20.11.0',
-          },
-        }, null, 2),
+        content: (name: string) =>
+          JSON.stringify(
+            {
+              name,
+              version: '1.0.0',
+              type: 'module',
+              scripts: {
+                build: 'tsc',
+                start: 'node dist/index.js',
+              },
+              dependencies: {
+                '@modelcontextprotocol/sdk': '^1.0.0',
+              },
+              devDependencies: {
+                typescript: '^5.4.0',
+                '@types/node': '^20.11.0',
+              },
+            },
+            null,
+            2
+          ),
       },
       {
         name: 'mcp-spec.yaml',
@@ -124,18 +134,23 @@ transport:
       },
       {
         name: 'tsconfig.json',
-        content: () => JSON.stringify({
-          compilerOptions: {
-            target: 'ES2022',
-            module: 'NodeNext',
-            moduleResolution: 'NodeNext',
-            outDir: './dist',
-            strict: true,
-            esModuleInterop: true,
-            skipLibCheck: true,
-          },
-          include: ['src/**/*'],
-        }, null, 2),
+        content: () =>
+          JSON.stringify(
+            {
+              compilerOptions: {
+                target: 'ES2022',
+                module: 'NodeNext',
+                moduleResolution: 'NodeNext',
+                outDir: './dist',
+                strict: true,
+                esModuleInterop: true,
+                skipLibCheck: true,
+              },
+              include: ['src/**/*'],
+            },
+            null,
+            2
+          ),
       },
     ],
   },
@@ -146,7 +161,7 @@ export const initCommand = new Command('init')
   .option('-n, --name <name>', 'Project name', 'my-mcp-server')
   .option('-f, --framework <framework>', 'Framework (nestjs, standalone)', 'standalone')
   .option('-d, --dir <directory>', 'Output directory')
-  .action(async (options) => {
+  .action(async options => {
     const spinner = ora('Creating project...').start();
 
     try {
@@ -189,7 +204,6 @@ export const initCommand = new Command('init')
       console.log(chalk.gray('  2. npm install'));
       console.log(chalk.gray('  3. Edit mcp-spec.yaml or src/ files'));
       console.log(chalk.gray('  4. mcp-weave start'));
-
     } catch (error) {
       spinner.fail(chalk.red(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`));
       process.exit(1);

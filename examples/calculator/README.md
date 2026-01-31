@@ -5,16 +5,19 @@ A simple calculator that demonstrates all MCP-Weave decorator features.
 ## Features
 
 ### Tools
+
 - `add` - Add two numbers
 - `subtract` - Subtract second number from first
 - `multiply` - Multiply two numbers
 - `divide` - Divide first number by second
 
 ### Resources
+
 - `calculator://history` - View calculation history
 - `calculator://history/{index}` - View specific calculation
 
 ### Prompts
+
 - `solve_equation` - Generate prompt to solve an equation
 - `explain_calculation` - Generate prompt to explain a calculation
 

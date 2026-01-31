@@ -3,6 +3,7 @@
 ## Estado Atual (v0.1.0 MVP)
 
 ### Concluído
+
 - [x] Estrutura do monorepo (pnpm + Turbo + Changesets)
 - [x] Configuração TypeScript, ESLint, Prettier
 - [x] **@mcp-weave/core**: Parser YAML, validação Zod, gerador de código
@@ -13,6 +14,7 @@
 - [x] Build funcionando em todos os pacotes
 
 ### Pendente para v0.1.0
+
 - [x] Testes unitários para todos os pacotes (152 testes)
 - [ ] Exemplo funcional completo
 - [ ] CI/CD GitHub Actions
@@ -22,6 +24,7 @@
 ## Fase 1: Completar MVP (v0.1.0)
 
 ### 1.1 Testes Unitários ✅ CONCLUÍDO
+
 **152 testes passando**
 
 ```
@@ -56,6 +59,7 @@ packages/cli/src/__tests__/          # 12 tests
 ```
 
 ### 1.2 Exemplo Funcional
+
 **Prioridade: Alta**
 
 ```
@@ -76,6 +80,7 @@ examples/
 ```
 
 ### 1.3 CI/CD
+
 **Prioridade: Média**
 
 ```yaml
@@ -91,6 +96,7 @@ examples/
 ## Fase 2: v0.2.0 Features
 
 ### 2.1 Testing Utilities
+
 **Prioridade: Alta**
 
 Expandir `@mcp-weave/testing`:
@@ -107,6 +113,7 @@ await expect(testClient).toHaveResource('user://{id}');
 ```
 
 ### 2.2 SSE Transport
+
 **Prioridade: Média**
 
 ```typescript
@@ -124,6 +131,7 @@ await expect(testClient).toHaveResource('user://{id}');
 ```
 
 ### 2.3 Express Support
+
 **Prioridade: Média**
 
 Novo pacote `@mcp-weave/express`:
@@ -144,6 +152,7 @@ app.use('/mcp', mcpMiddleware(MyServer));
 ```
 
 ### 2.4 Hot Reload
+
 **Prioridade: Baixa**
 
 ```bash
@@ -155,14 +164,17 @@ mcp-weave start --watch
 ## Fase 3: v0.3.0+ Features
 
 ### 3.1 WebSocket Transport
+
 ```typescript
 @McpServer({ transport: 'websocket', port: 8080 })
 ```
 
 ### 3.2 Web UI para Testing
+
 Dashboard para testar tools/resources/prompts interativamente.
 
 ### 3.3 Suporte Adicional
+
 - Python/FastAPI (`@mcp-weave/fastapi`)
 - Go/Gin
 
@@ -170,14 +182,14 @@ Dashboard para testar tools/resources/prompts interativamente.
 
 ## Cronograma Sugerido
 
-| Fase | Tasks | Estimativa |
-|------|-------|------------|
-| 1.1 | Testes unitários core | Sessão 1 |
-| 1.2 | Exemplo básico | Sessão 1 |
-| 1.3 | CI/CD | Sessão 2 |
-| 2.1 | Testing utilities | Sessão 2-3 |
-| 2.2 | SSE Transport | Sessão 3 |
-| 2.3 | Express support | Sessão 4 |
+| Fase | Tasks                 | Estimativa |
+| ---- | --------------------- | ---------- |
+| 1.1  | Testes unitários core | Sessão 1   |
+| 1.2  | Exemplo básico        | Sessão 1   |
+| 1.3  | CI/CD                 | Sessão 2   |
+| 2.1  | Testing utilities     | Sessão 2-3 |
+| 2.2  | SSE Transport         | Sessão 3   |
+| 2.3  | Express support       | Sessão 4   |
 
 ---
 

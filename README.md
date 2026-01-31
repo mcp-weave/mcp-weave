@@ -57,61 +57,64 @@ yarn add @mcp-weave/nestjs
 Transform your existing code into an MCP server with simple decorators:
 
 ```typescript
-import { 
-  McpServer, 
-  McpTool, 
-  McpResource, 
+import {
+  McpServer,
+  McpTool,
+  McpResource,
   McpPrompt,
-  McpInput, 
+  McpInput,
   McpParam,
-  McpPromptArg 
+  McpPromptArg,
 } from '@mcp-weave/nestjs';
 
-@McpServer({ 
+@McpServer({
   name: 'user-service',
   version: '1.0.0',
-  description: 'User management service'
+  description: 'User management service',
 })
 export class UserController {
-  
   @McpTool({
     name: 'create_user',
-    description: 'Creates a new user in the system'
+    description: 'Creates a new user in the system',
   })
   async createUser(@McpInput() input: CreateUserDto) {
     const user = await this.userService.create(input);
     return { success: true, userId: user.id };
   }
-  
+
   @McpResource({
     uri: 'user://{userId}',
     name: 'User Profile',
-    mimeType: 'application/json'
+    mimeType: 'application/json',
   })
   async getUserProfile(@McpParam('userId') userId: string) {
     const user = await this.userService.findById(userId);
     return {
-      contents: [{
-        uri: `user://${userId}`,
-        mimeType: 'application/json',
-        text: JSON.stringify(user)
-      }]
+      contents: [
+        {
+          uri: `user://${userId}`,
+          mimeType: 'application/json',
+          text: JSON.stringify(user),
+        },
+      ],
     };
   }
-  
+
   @McpPrompt({
     name: 'welcome_email',
-    description: 'Generate welcome email for new user'
+    description: 'Generate welcome email for new user',
   })
   async generateWelcomeEmail(
     @McpPromptArg('userName') userName: string,
     @McpPromptArg('userEmail') userEmail: string
   ) {
     return {
-      messages: [{
-        role: 'user',
-        content: `Generate a welcome email for ${userName} (${userEmail})`
-      }]
+      messages: [
+        {
+          role: 'user',
+          content: `Generate a welcome email for ${userName} (${userEmail})`,
+        },
+      ],
     };
   }
 }
@@ -119,12 +122,12 @@ export class UserController {
 
 ## 📦 Packages
 
-| Package | Description | Version |
-|---------|-------------|---------|
-| [`@mcp-weave/core`](./packages/core) | Core functionality - parser, validator, generator | [![npm](https://img.shields.io/npm/v/@mcp-weave/core.svg?style=flat-square)](https://www.npmjs.com/package/@mcp-weave/core) |
-| [`@mcp-weave/cli`](./packages/cli) | Command-line interface | [![npm](https://img.shields.io/npm/v/@mcp-weave/cli.svg?style=flat-square)](https://www.npmjs.com/package/@mcp-weave/cli) |
-| [`@mcp-weave/nestjs`](./packages/nestjs) | NestJS integration with decorators | [![npm](https://img.shields.io/npm/v/@mcp-weave/nestjs.svg?style=flat-square)](https://www.npmjs.com/package/@mcp-weave/nestjs) |
-| [`@mcp-weave/testing`](./packages/testing) | Testing utilities and mocks | [![npm](https://img.shields.io/npm/v/@mcp-weave/testing.svg?style=flat-square)](https://www.npmjs.com/package/@mcp-weave/testing) |
+| Package                                    | Description                                       | Version                                                                                                                           |
+| ------------------------------------------ | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| [`@mcp-weave/core`](./packages/core)       | Core functionality - parser, validator, generator | [![npm](https://img.shields.io/npm/v/@mcp-weave/core.svg?style=flat-square)](https://www.npmjs.com/package/@mcp-weave/core)       |
+| [`@mcp-weave/cli`](./packages/cli)         | Command-line interface                            | [![npm](https://img.shields.io/npm/v/@mcp-weave/cli.svg?style=flat-square)](https://www.npmjs.com/package/@mcp-weave/cli)         |
+| [`@mcp-weave/nestjs`](./packages/nestjs)   | NestJS integration with decorators                | [![npm](https://img.shields.io/npm/v/@mcp-weave/nestjs.svg?style=flat-square)](https://www.npmjs.com/package/@mcp-weave/nestjs)   |
+| [`@mcp-weave/testing`](./packages/testing) | Testing utilities and mocks                       | [![npm](https://img.shields.io/npm/v/@mcp-weave/testing.svg?style=flat-square)](https://www.npmjs.com/package/@mcp-weave/testing) |
 
 ## 🔄 Two Development Flows
 
@@ -159,42 +162,42 @@ mcp-weave generate --spec mcp-spec.yaml --output ./server
 Define your MCP server in `mcp-spec.yaml`:
 
 ```yaml
-version: "1.0"
+version: '1.0'
 
 server:
-  name: "user-management"
-  version: "1.0.0"
-  description: "User management service"
-  
+  name: 'user-management'
+  version: '1.0.0'
+  description: 'User management service'
+
 tools:
   - name: create_user
-    description: "Creates a new user"
+    description: 'Creates a new user'
     inputSchema:
       type: object
       properties:
         name: { type: string }
         email: { type: string, format: email }
       required: [name, email]
-    handler: "/handlers/user/create"
-    
+    handler: '/handlers/user/create'
+
 resources:
-  - uri: "user://{userId}"
-    name: "User Profile"
-    mimeType: "application/json"
-    handler: "/handlers/user/get"
+  - uri: 'user://{userId}'
+    name: 'User Profile'
+    mimeType: 'application/json'
+    handler: '/handlers/user/get'
 
 prompts:
-  - name: "welcome_email"
-    description: "Generate welcome email"
+  - name: 'welcome_email'
+    description: 'Generate welcome email'
     arguments:
       - name: userName
         required: true
-    handler: "/handlers/prompts/welcome"
+    handler: '/handlers/prompts/welcome'
 
 transport:
   - type: stdio
   - type: sse
-    endpoint: "/mcp/sse"
+    endpoint: '/mcp/sse'
 ```
 
 ## 🛠️ CLI Commands
@@ -220,24 +223,24 @@ mcp-weave export --format yaml --output spec.yaml
 
 ### Class Decorators
 
-| Decorator | Description |
-|-----------|-------------|
+| Decorator             | Description                    |
+| --------------------- | ------------------------------ |
 | `@McpServer(options)` | Marks a class as an MCP server |
 
 ### Method Decorators
 
-| Decorator | Description |
-|-----------|-------------|
-| `@McpTool(options)` | Marks a method as an MCP tool |
+| Decorator               | Description                       |
+| ----------------------- | --------------------------------- |
+| `@McpTool(options)`     | Marks a method as an MCP tool     |
 | `@McpResource(options)` | Marks a method as an MCP resource |
-| `@McpPrompt(options)` | Marks a method as an MCP prompt |
+| `@McpPrompt(options)`   | Marks a method as an MCP prompt   |
 
 ### Parameter Decorators
 
-| Decorator | Description |
-|-----------|-------------|
-| `@McpInput()` | Injects tool input |
-| `@McpParam(name)` | Injects URI parameter |
+| Decorator             | Description             |
+| --------------------- | ----------------------- |
+| `@McpInput()`         | Injects tool input      |
+| `@McpParam(name)`     | Injects URI parameter   |
 | `@McpPromptArg(name)` | Injects prompt argument |
 
 ## 📚 Documentation
@@ -264,7 +267,7 @@ describe('UserController', () => {
   it('should create a user', async () => {
     const result = await server.callTool('create_user', {
       name: 'John Doe',
-      email: 'john@example.com'
+      email: 'john@example.com',
     });
 
     expect(result.success).toBe(true);
@@ -276,6 +279,7 @@ describe('UserController', () => {
 ## 🗺️ Roadmap
 
 ### v0.1.0 - MVP ✨
+
 - [x] Core spec parser and validator
 - [x] NestJS decorators (`@McpServer`, `@McpTool`, `@McpResource`, `@McpPrompt`)
 - [x] CLI with `generate` and `start` commands
@@ -284,6 +288,7 @@ describe('UserController', () => {
 - [x] Initial documentation
 
 ### v0.2.0
+
 - [ ] Express support
 - [ ] SSE transport
 - [ ] Testing utilities
@@ -291,6 +296,7 @@ describe('UserController', () => {
 - [ ] Hot reload
 
 ### v0.3.0+
+
 - [ ] Python/FastAPI support
 - [ ] WebSocket transport
 - [ ] Web UI for testing
