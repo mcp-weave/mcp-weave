@@ -8,19 +8,21 @@
 
 ### Estado Atual
 - [x] Documento de contexto criado (mcp-weave.md)
-- [ ] Estrutura do monorepo
-- [ ] Package @mcp-weave/core
-- [ ] Package @mcp-weave/cli
-- [ ] Package @mcp-weave/nestjs
-- [ ] Package @mcp-weave/testing
+- [x] Estrutura do monorepo
+- [x] Package @mcp-weave/core
+- [x] Package @mcp-weave/cli
+- [x] Package @mcp-weave/nestjs
+- [x] Package @mcp-weave/testing
 
 ### Próximos Passos
-1. Inicializar estrutura do monorepo com pnpm workspaces
-2. Configurar Turbo para builds
-3. Configurar TypeScript, ESLint, Prettier
-4. Implementar @mcp-weave/core (MVP)
-5. Implementar @mcp-weave/nestjs (MVP)
-6. Implementar @mcp-weave/cli (MVP)
+1. ~~Inicializar estrutura do monorepo com pnpm workspaces~~ ✅
+2. ~~Configurar Turbo para builds~~ ✅
+3. ~~Configurar TypeScript, ESLint, Prettier~~ ✅
+4. ~~Implementar @mcp-weave/core (MVP)~~ ✅
+5. ~~Implementar @mcp-weave/nestjs (MVP)~~ ✅
+6. ~~Implementar @mcp-weave/cli (MVP)~~ ✅
+7. Instalar dependências e testar build
+8. Criar exemplo básico
 
 ---
 
@@ -92,12 +94,12 @@ Responsabilidades:
 | Task | Status | Notas |
 |------|--------|-------|
 | Criar REASONING.md | ✅ | Este arquivo |
-| Estrutura monorepo | ⏳ | Próximo passo |
-| Configuração base | ⏳ | |
-| @mcp-weave/core | ⏳ | |
-| @mcp-weave/nestjs | ⏳ | |
-| @mcp-weave/cli | ⏳ | |
-| @mcp-weave/testing | ⏳ | |
+| Estrutura monorepo | ✅ | pnpm + turbo + changesets |
+| Configuração base | ✅ | tsconfig, eslint, prettier |
+| @mcp-weave/core | ✅ | Parser, validator, generator |
+| @mcp-weave/nestjs | ✅ | Decorators + runtime server |
+| @mcp-weave/cli | ✅ | generate, init, start, extract |
+| @mcp-weave/testing | ✅ | Mock server, transport, assertions |
 
 ---
 
