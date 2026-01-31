@@ -15,7 +15,7 @@
 ### Pendente para v0.1.0
 - [x] Testes unitários para todos os pacotes (152 testes)
 - [ ] Exemplo funcional completo
-- [ ] CI/CD GitHub Actions
+- [x] CI/CD GitHub Actions
 
 ---
 
@@ -75,15 +75,23 @@ examples/
     └── README.md
 ```
 
-### 1.3 CI/CD
-**Prioridade: Média**
+### 1.3 CI/CD ✅ CONCLUÍDO
+**2 workflows criados**
 
 ```yaml
 # .github/workflows/ci.yml
-- Lint + Format check
+- Matrix: Node.js 18, 20, 22
+- Install dependencies (pnpm)
 - Build all packages
-- Run tests
+- Lint
 - Type check
+- Run tests (152 tests)
+- Format check
+
+# .github/workflows/release.yml
+- Changesets action for versioning
+- Auto publish to npm on merge to main
+- Requires NPM_TOKEN secret
 ```
 
 ---
