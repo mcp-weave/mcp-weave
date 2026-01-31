@@ -1,6 +1,8 @@
 // @mcp-weave/core
 // Core functionality for MCP-Weave
 
+import 'reflect-metadata';
+
 // Spec
 export * from './spec/types.js';
 export * from './spec/parser.js';

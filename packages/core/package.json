@@ -12,7 +12,9 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
@@ -25,6 +27,7 @@
     "clean": "rimraf dist coverage"
   },
   "dependencies": {
+    "reflect-metadata": "^0.2.0",
     "yaml": "^2.4.0",
     "zod": "^3.23.0"
   },
@@ -35,7 +38,6 @@
     "typescript": "^5.4.0",
     "vitest": "^1.3.0"
   },
-  "peerDependencies": {},
   "keywords": [
     "mcp",
     "model-context-protocol",
