@@ -73,6 +73,28 @@ importers:
         specifier: ^5.4.0
         version: 5.9.3
 
+  examples/user-service:
+    dependencies:
+      '@mcp-weave/nestjs':
+        specifier: workspace:*
+        version: link:../../packages/nestjs
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.0.0
+        version: 1.25.3(hono@4.11.7)(zod@3.25.76)
+      reflect-metadata:
+        specifier: ^0.2.0
+        version: 0.2.2
+    devDependencies:
+      '@mcp-weave/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
+      '@types/node':
+        specifier: ^20.11.0
+        version: 20.19.30
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+
   packages/cli:
     dependencies:
       '@mcp-weave/core':
@@ -180,6 +202,9 @@ importers:
       '@mcp-weave/core':
         specifier: workspace:*
         version: link:../core
+      reflect-metadata:
+        specifier: ^0.2.0
+        version: 0.2.2
     devDependencies:
       '@types/node':
         specifier: ^20.11.0

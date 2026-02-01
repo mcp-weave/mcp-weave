@@ -1,6 +1,6 @@
 # @mcp-weave/testing
 
-Testing utilities for MCP-Weave - mock servers, transports, and assertions for testing MCP servers.
+Testing utilities for MCP-Weave - test clients, mock servers, transports, and assertions for testing MCP servers.
 
 ## Installation
 
@@ -12,14 +12,97 @@ pnpm add @mcp-weave/testing -D
 
 ## Features
 
+- **McpTestClient** - Test decorated classes directly (recommended)
 - **Mock Server** - Simulated MCP server for testing
 - **Mock Transport** - In-memory transport for testing
 - **Assertions** - Helper functions for MCP-specific assertions
 
-## Quick Start
+## Quick Start with McpTestClient
+
+The `McpTestClient` allows you to test your decorated MCP server classes directly:
 
 ```typescript
-import { createTestServer, McpMockTransport, assertToolExists } from '@mcp-weave/testing';
+import 'reflect-metadata';
+import { McpTestClient, createTestClient } from '@mcp-weave/testing';
+
+describe('My MCP Server', () => {
+  let client: McpTestClient;
+
+  beforeEach(() => {
+    client = new McpTestClient(MyServer);
+  });
+
+  it('should call a tool', async () => {
+    const result = await client.callTool('create_user', {
+      name: 'John',
+      email: 'john@example.com',
+    });
+
+    expect(result.content[0].text).toContain('success');
+  });
+
+  it('should read a resource', async () => {
+    const result = await client.readResource('users://list');
+    const data = JSON.parse(result.contents[0].text);
+    expect(data.users).toBeDefined();
+  });
+
+  it('should get a prompt', async () => {
+    const result = await client.getPrompt('welcome', { name: 'Alice' });
+    expect(result.messages[0].content.text).toContain('Alice');
+  });
+
+  it('should list available tools', () => {
+    const tools = client.listTools();
+    expect(tools).toContainEqual(
+      expect.objectContaining({ name: 'create_user' })
+    );
+  });
+
+  it('should check tool existence', () => {
+    expect(client.hasTool('create_user')).toBe(true);
+    expect(client.hasTool('nonexistent')).toBe(false);
+  });
+});
+```
+
+## McpTestClient API
+
+### Creating a Client
+
+```typescript
+import { McpTestClient, createTestClient } from '@mcp-weave/testing';
+
+// Using constructor
+const client = new McpTestClient(MyDecoratedServer);
+
+// Using factory function
+const client = createTestClient(MyDecoratedServer);
+```
+
+### Methods
+
+| Method | Description |
+|--------|-------------|
+| `callTool(name, args)` | Call a tool and get the result |
+| `readResource(uri)` | Read a resource by URI |
+| `getPrompt(name, args)` | Get a prompt with arguments |
+| `listTools()` | List all available tools |
+| `listResources()` | List all available resources |
+| `listPrompts()` | List all available prompts |
+| `hasTool(name)` | Check if a tool exists |
+| `hasResource(uri)` | Check if a resource exists (supports patterns) |
+| `hasPrompt(name)` | Check if a prompt exists |
+| `getInstance<T>()` | Get the raw server instance |
+
+---
+
+## Mock Server (Low-Level Testing)
+
+For more control, use the mock server directly:
+
+```typescript
+import { createTestServer, McpTestServer } from '@mcp-weave/testing';
 
 describe('My MCP Server', () => {
   it('should call a tool', async () => {
@@ -37,8 +120,6 @@ describe('My MCP Server', () => {
   });
 });
 ```
-
-## Mock Server
 
 ### Creating a Test Server
 

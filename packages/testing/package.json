@@ -27,7 +27,8 @@
     "clean": "rimraf dist coverage"
   },
   "dependencies": {
-    "@mcp-weave/core": "workspace:*"
+    "@mcp-weave/core": "workspace:*",
+    "reflect-metadata": "^0.2.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",

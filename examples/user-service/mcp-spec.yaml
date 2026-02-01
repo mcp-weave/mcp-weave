@@ -1,0 +1,133 @@
+# MCP-Weave Spec for User Service
+# This demonstrates spec-first development workflow
+
+name: user-service
+version: 1.0.0
+description: User management MCP server with CRUD operations
+
+tools:
+  - name: create_user
+    description: Create a new user in the system
+    inputSchema:
+      type: object
+      properties:
+        name:
+          type: string
+          description: User's full name
+        email:
+          type: string
+          description: User's email address
+        role:
+          type: string
+          enum: [admin, user, guest]
+          description: User's role in the system
+      required:
+        - name
+        - email
+
+  - name: get_user
+    description: Get a user by their ID
+    inputSchema:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The user's unique identifier
+      required:
+        - id
+
+  - name: update_user
+    description: Update an existing user's information
+    inputSchema:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The user's unique identifier
+        name:
+          type: string
+          description: User's new name
+        email:
+          type: string
+          description: User's new email
+        role:
+          type: string
+          enum: [admin, user, guest]
+          description: User's new role
+      required:
+        - id
+
+  - name: delete_user
+    description: Delete a user from the system
+    inputSchema:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The user's unique identifier
+      required:
+        - id
+
+  - name: list_users
+    description: List all users with optional filtering
+    inputSchema:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [admin, user, guest]
+          description: Filter by role
+        limit:
+          type: number
+          description: Maximum number of users to return
+        offset:
+          type: number
+          description: Number of users to skip
+
+  - name: search_users
+    description: Search users by name or email
+    inputSchema:
+      type: object
+      properties:
+        query:
+          type: string
+          description: Search query
+      required:
+        - query
+
+resources:
+  - uri: users://list
+    name: All Users
+    description: Get a list of all users in the system
+    mimeType: application/json
+
+  - uri: users://{id}
+    name: User Details
+    description: Get detailed information about a specific user
+    mimeType: application/json
+
+  - uri: users://stats
+    name: User Statistics
+    description: Get statistics about users in the system
+    mimeType: application/json
+
+prompts:
+  - name: onboard_user
+    description: Generate an onboarding welcome message for a new user
+    arguments:
+      - name: name
+        description: The user's name
+        required: true
+      - name: role
+        description: The user's role
+        required: true
+
+  - name: user_report
+    description: Generate a report about a user's activity
+    arguments:
+      - name: userId
+        description: The user's ID
+        required: true
+      - name: period
+        description: Report period (daily, weekly, monthly)
+        required: false

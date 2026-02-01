@@ -276,24 +276,42 @@ describe('UserController', () => {
 });
 ```
 
+## � Examples
+
+| Example | Description |
+|---------|-------------|
+| [calculator](./examples/calculator) | Basic calculator with arithmetic tools |
+| [user-service](./examples/user-service) | Full CRUD service with tools, resources, and prompts |
+
+```bash
+# Run the calculator example
+cd examples/calculator
+pnpm install && pnpm build && pnpm start
+
+# Run the user-service example
+cd examples/user-service
+pnpm install && pnpm build && pnpm start
+```
+
 ## 🗺️ Roadmap
 
 ### v0.1.0 - MVP ✨
 
 - [x] Core spec parser and validator
 - [x] NestJS decorators (`@McpServer`, `@McpTool`, `@McpResource`, `@McpPrompt`)
-- [x] CLI with `generate` and `start` commands
+- [x] CLI with `generate`, `init`, `start`, `extract` commands
 - [x] Stdio transport
-- [x] Basic example
-- [x] Initial documentation
+- [x] 152 unit tests passing
+- [x] CI/CD with GitHub Actions
+- [x] Examples (calculator, user-service)
+- [x] Testing utilities package
 
 ### v0.2.0
 
-- [ ] Express support
+- [ ] Express support (`@mcp-weave/express`)
 - [ ] SSE transport
-- [ ] Testing utilities
-- [ ] `extract` command
-- [ ] Hot reload
+- [ ] Enhanced testing utilities
+- [ ] Hot reload (`mcp-weave start --watch`)
 
 ### v0.3.0+
 

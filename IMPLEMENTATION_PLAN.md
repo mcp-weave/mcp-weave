@@ -16,8 +16,8 @@
 ### Pendente para v0.1.0
 
 - [x] Testes unitários para todos os pacotes (152 testes)
-- [ ] Exemplo funcional completo
-- [ ] CI/CD GitHub Actions
+- [x] Exemplo funcional completo (calculator + user-service)
+- [x] CI/CD GitHub Actions
 
 ---
 
@@ -25,7 +25,7 @@
 
 ### 1.1 Testes Unitários ✅ CONCLUÍDO
 
-**152 testes passando**
+**173 testes passando**
 
 ```
 packages/core/src/__tests__/         # 51 tests
@@ -47,10 +47,11 @@ packages/nestjs/src/__tests__/       # 42 tests
 └── metadata/
     └── storage.test.ts             # 15 tests
 
-packages/testing/src/__tests__/      # 47 tests
+packages/testing/src/__tests__/      # 68 tests
 ├── mock-server.test.ts             # 13 tests
 ├── mock-transport.test.ts          # 13 tests
-└── assertions.test.ts              # 21 tests
+├── assertions.test.ts              # 21 tests
+└── test-client.test.ts             # 21 tests - NEW! McpTestClient
 
 packages/cli/src/__tests__/          # 12 tests
 └── commands/
@@ -58,35 +59,35 @@ packages/cli/src/__tests__/          # 12 tests
     └── init.test.ts                # 7 tests
 ```
 
-### 1.2 Exemplo Funcional
+### 1.2 Exemplo Funcional ✅ CONCLUÍDO
 
-**Prioridade: Alta**
+**Dois exemplos completos:**
 
 ```
 examples/
-├── basic/
+├── calculator/                 # Exemplo básico
 │   ├── package.json
 │   ├── tsconfig.json
-│   ├── src/
-│   │   └── calculator.ts   # Exemplo simples com tools
-│   └── README.md
-└── full-service/
+│   ├── README.md
+│   └── src/
+│       └── server.ts          # Calculadora com tools, resources e prompts
+└── user-service/              # Exemplo completo
     ├── package.json
     ├── tsconfig.json
-    ├── mcp-spec.yaml       # Spec file
-    ├── src/
-    │   └── user-service.ts # Exemplo completo
-    └── README.md
+    ├── mcp-spec.yaml          # Spec-first workflow demo
+    ├── README.md
+    └── src/
+        └── server.ts          # CRUD completo com 6 tools, 3 resources, 2 prompts
 ```
 
-### 1.3 CI/CD
+### 1.3 CI/CD ✅ CONCLUÍDO
 
-**Prioridade: Média**
+**GitHub Actions configurado:**
 
 ```yaml
 # .github/workflows/ci.yml
 - Lint + Format check
-- Build all packages
+- Build all packages (Node 18, 20, 22)
 - Run tests
 - Type check
 ```

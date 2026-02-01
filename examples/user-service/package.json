@@ -1,0 +1,22 @@
+{
+  "name": "mcp-user-service-example",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Full-service example with spec-first workflow using @mcp-weave",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "generate": "mcp-weave generate --spec mcp-spec.yaml --output src/generated"
+  },
+  "dependencies": {
+    "@mcp-weave/nestjs": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "reflect-metadata": "^0.2.0"
+  },
+  "devDependencies": {
+    "@mcp-weave/cli": "workspace:*",
+    "@types/node": "^20.11.0",
+    "typescript": "^5.4.0"
+  }
+}
