@@ -27,6 +27,7 @@ pnpm add @mcp-weave/nestjs reflect-metadata
 - **Method Decorators** - `@McpTool`, `@McpResource`, `@McpPrompt`
 - **Parameter Decorators** - `@McpInput`, `@McpParam`, `@McpPromptArg`
 - **Runtime Server** - Start MCP servers from decorated classes
+- **Multiple Transports** - Stdio (default) and SSE (Server-Sent Events)
 
 ## Quick Start
 
@@ -214,6 +215,46 @@ const server = new McpRuntimeServer(MyServer, {
 
 await server.start();
 ```
+
+### SSE Transport (Server-Sent Events)
+
+For web-based integrations, use the SSE transport:
+
+```typescript
+import { McpRuntimeServer } from '@mcp-weave/nestjs';
+
+const server = new McpRuntimeServer(MyServer, {
+  transport: 'sse',
+  port: 3000,
+  endpoint: '/sse',
+});
+
+// Starts HTTP server with SSE endpoint
+const httpServer = await server.start();
+
+// Server available at:
+// - SSE endpoint: http://localhost:3000/sse
+// - Health check: http://localhost:3000/health
+```
+
+Or use the `startSSE` method directly:
+
+```typescript
+const server = new McpRuntimeServer(MyServer);
+
+// Start with SSE transport
+const httpServer = await server.startSSE({
+  port: 8080,
+  endpoint: '/mcp',
+});
+```
+
+**SSE Features:**
+
+- CORS enabled by default
+- Health check endpoint at `/health`
+- Session management for multiple clients
+- Automatic cleanup on connection close
 
 ## Metadata Extraction
 

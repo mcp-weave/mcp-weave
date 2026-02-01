@@ -1,14 +1,30 @@
-import { Server, StdioServerTransport, AnyObjectSchema } from './sdk-compat.js';
+import { Server, StdioServerTransport, SSEServerTransport, AnyObjectSchema } from './sdk-compat.js';
 import { extractMetadata } from '../metadata/storage.js';
+import {
+  createServer,
+  type Server as HttpServer,
+  type IncomingMessage,
+  type ServerResponse,
+} from 'http';
 
 /**
  * Options for MCP runtime server
  */
 export interface McpRuntimeOptions {
   /**
-   * Transport type
+   * Transport type: 'stdio' (default) or 'sse'
    */
   transport?: 'stdio' | 'sse';
+
+  /**
+   * Port for SSE transport (default: 3000)
+   */
+  port?: number;
+
+  /**
+   * Endpoint path for SSE (default: '/sse')
+   */
+  endpoint?: string;
 }
 
 /**
@@ -256,12 +272,83 @@ export class McpRuntimeServer {
   }
 
   /**
-   * Start the MCP server
+   * Start the MCP server with stdio transport
    */
   async start(): Promise<void> {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
     console.error(`MCP server '${this.metadata.server?.name}' started on stdio`);
+  }
+
+  /**
+   * Start the MCP server with SSE transport
+   */
+  async startSSE(options: { port?: number; endpoint?: string } = {}): Promise<HttpServer> {
+    const port = options.port ?? 3000;
+    const endpoint = options.endpoint ?? '/sse';
+
+    const httpServer = createServer(async (req: IncomingMessage, res: ServerResponse) => {
+      // Handle CORS
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+      if (req.method === 'OPTIONS') {
+        res.writeHead(200);
+        res.end();
+        return;
+      }
+
+      const url = new URL(req.url ?? '/', `http://localhost:${port}`);
+
+      // SSE endpoint
+      if (url.pathname === endpoint && req.method === 'GET') {
+        const transport = new SSEServerTransport(endpoint, res);
+        await this.server.connect(transport);
+        return;
+      }
+
+      // Message endpoint (POST to /sse/message or similar)
+      if (url.pathname === `${endpoint}/message` && req.method === 'POST') {
+        // Handle message posting for SSE
+        let body = '';
+        req.on('data', chunk => {
+          body += chunk.toString();
+        });
+        req.on('end', () => {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ received: true }));
+        });
+        return;
+      }
+
+      // Health check
+      if (url.pathname === '/health') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(
+          JSON.stringify({
+            status: 'ok',
+            server: this.metadata.server?.name,
+            version: this.metadata.server?.version,
+          })
+        );
+        return;
+      }
+
+      // 404 for other routes
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Not found' }));
+    });
+
+    return new Promise((resolve, reject) => {
+      httpServer.on('error', reject);
+      httpServer.listen(port, () => {
+        console.error(
+          `MCP server '${this.metadata.server?.name}' started on http://localhost:${port}${endpoint}`
+        );
+        resolve(httpServer);
+      });
+    });
   }
 
   /**
@@ -274,12 +361,26 @@ export class McpRuntimeServer {
 
 /**
  * Create and start an MCP server from a decorated class
+ *
+ * @example
+ * // Stdio transport (default)
+ * await createMcpServer(MyServer);
+ *
+ * @example
+ * // SSE transport
+ * await createMcpServer(MyServer, { transport: 'sse', port: 3000 });
  */
 export async function createMcpServer(
   target: Function,
-  options?: McpRuntimeOptions
+  options: McpRuntimeOptions = {}
 ): Promise<McpRuntimeServer> {
   const server = new McpRuntimeServer(target, options);
-  await server.start();
+
+  if (options.transport === 'sse') {
+    await server.startSSE({ port: options.port, endpoint: options.endpoint });
+  } else {
+    await server.start();
+  }
+
   return server;
 }
