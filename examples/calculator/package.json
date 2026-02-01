@@ -1,6 +1,6 @@
 {
   "name": "mcp-calculator-example",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "type": "module",
   "description": "Example MCP server using @mcp-weave/nestjs decorators",
