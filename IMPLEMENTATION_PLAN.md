@@ -1,6 +1,6 @@
 # MCP-Weave - Plano de Implementação
 
-## Estado Atual (v0.1.0 MVP)
+## Estado Atual (v0.2.0)
 
 ### Concluído
 
@@ -8,10 +8,11 @@
 - [x] Configuração TypeScript, ESLint, Prettier
 - [x] **@mcp-weave/core**: Parser YAML, validação Zod, gerador de código
 - [x] **@mcp-weave/nestjs**: Decorators completos (`@McpServer`, `@McpTool`, `@McpResource`, `@McpPrompt`, `@McpInput`, `@McpParam`, `@McpPromptArg`)
-- [x] **@mcp-weave/nestjs**: Runtime server com suporte a stdio
-- [x] **@mcp-weave/cli**: Comandos `generate`, `init`, `start`, `extract`
-- [x] **@mcp-weave/testing**: Mock server, transport e assertions (estrutura)
-- [x] Build funcionando em todos os pacotes
+- [x] **@mcp-weave/nestjs**: Runtime server com suporte a stdio e SSE
+- [x] **@mcp-weave/cli**: Comandos `generate`, `init`, `start`, `extract` com hot reload
+- [x] **@mcp-weave/testing**: Mock server, transport, assertions e McpTestClient
+- [x] **@mcp-weave/express**: Middleware e servidor Express para MCP
+- [x] Build funcionando em todos os pacotes (192 testes)
 
 ### Pendente para v0.1.0
 
@@ -25,7 +26,7 @@
 
 ### 1.1 Testes Unitários ✅ CONCLUÍDO
 
-**173 testes passando**
+**192 testes passando**
 
 ```
 packages/core/src/__tests__/         # 51 tests
@@ -51,12 +52,16 @@ packages/testing/src/__tests__/      # 68 tests
 ├── mock-server.test.ts             # 13 tests
 ├── mock-transport.test.ts          # 13 tests
 ├── assertions.test.ts              # 21 tests
-└── test-client.test.ts             # 21 tests - NEW! McpTestClient
+└── test-client.test.ts             # 21 tests - McpTestClient
 
 packages/cli/src/__tests__/          # 12 tests
 └── commands/
     ├── generate.test.ts            # 5 tests
     └── init.test.ts                # 7 tests
+
+packages/express/src/__tests__/      # 19 tests
+├── middleware.test.ts              # 14 tests
+└── server.test.ts                  # 5 tests
 ```
 
 ### 1.2 Exemplo Funcional ✅ CONCLUÍDO
@@ -94,13 +99,11 @@ examples/
 
 ---
 
-## Fase 2: v0.2.0 Features
+## Fase 2: v0.2.0 Features ✅ CONCLUÍDO
 
-### 2.1 Testing Utilities
+### 2.1 Testing Utilities ✅ CONCLUÍDO
 
-**Prioridade: Alta**
-
-Expandir `@mcp-weave/testing`:
+Expandido `@mcp-weave/testing`:
 
 ```typescript
 // Mock de transporte para testes
@@ -113,32 +116,29 @@ await expect(testClient).toHaveTool('create_user');
 await expect(testClient).toHaveResource('user://{id}');
 ```
 
-### 2.2 SSE Transport
-
-**Prioridade: Média**
+### 2.2 SSE Transport ✅ CONCLUÍDO
 
 ```typescript
-// packages/nestjs/src/runtime/transports/
-├── stdio.ts    # Já existe
-├── sse.ts      # Server-Sent Events
-└── index.ts
+// packages/nestjs/src/runtime/server.ts
+import { McpRuntimeServer } from '@mcp-weave/nestjs';
 
-// Uso
-@McpServer({
-  name: 'my-server',
+const server = new McpRuntimeServer(MyServer, {
   transport: 'sse',
-  port: 3000
-})
+  port: 3000,
+  endpoint: '/sse',
+});
+
+await server.start();
+// or
+await server.startSSE({ port: 3000, endpoint: '/sse' });
 ```
 
-### 2.3 Express Support
-
-**Prioridade: Média**
+### 2.3 Express Support ✅ CONCLUÍDO
 
 Novo pacote `@mcp-weave/express`:
 
 ```typescript
-import { McpTool, McpServer } from '@mcp-weave/express';
+import { McpExpressServer, McpServer, McpTool } from '@mcp-weave/express';
 
 @McpServer({ name: 'my-server' })
 class MyServer {
@@ -148,16 +148,19 @@ class MyServer {
   }
 }
 
-// Middleware Express
-app.use('/mcp', mcpMiddleware(MyServer));
+// Standalone server
+const server = new McpExpressServer(MyServer, { port: 3000 });
+await server.start();
+
+// Or middleware
+app.use('/mcp', createMcpMiddleware(MyServer));
 ```
 
-### 2.4 Hot Reload
-
-**Prioridade: Baixa**
+### 2.4 Hot Reload ✅ CONCLUÍDO
 
 ```bash
 mcp-weave start --watch
+mcp-weave start --watch --transport sse --port 3000
 ```
 
 ---
