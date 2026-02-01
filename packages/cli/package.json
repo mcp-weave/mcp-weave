@@ -1,6 +1,6 @@
 {
   "name": "@mcp-weave/cli",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "CLI for MCP-Weave - generate, extract, and manage MCP servers",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

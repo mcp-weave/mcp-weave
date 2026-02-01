@@ -1,6 +1,6 @@
 {
   "name": "@mcp-weave/core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Core functionality for MCP-Weave - parser, validator, and generator",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
