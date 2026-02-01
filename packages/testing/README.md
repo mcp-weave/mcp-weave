@@ -54,9 +54,7 @@ describe('My MCP Server', () => {
 
   it('should list available tools', () => {
     const tools = client.listTools();
-    expect(tools).toContainEqual(
-      expect.objectContaining({ name: 'create_user' })
-    );
+    expect(tools).toContainEqual(expect.objectContaining({ name: 'create_user' }));
   });
 
   it('should check tool existence', () => {
@@ -82,18 +80,18 @@ const client = createTestClient(MyDecoratedServer);
 
 ### Methods
 
-| Method | Description |
-|--------|-------------|
-| `callTool(name, args)` | Call a tool and get the result |
-| `readResource(uri)` | Read a resource by URI |
-| `getPrompt(name, args)` | Get a prompt with arguments |
-| `listTools()` | List all available tools |
-| `listResources()` | List all available resources |
-| `listPrompts()` | List all available prompts |
-| `hasTool(name)` | Check if a tool exists |
-| `hasResource(uri)` | Check if a resource exists (supports patterns) |
-| `hasPrompt(name)` | Check if a prompt exists |
-| `getInstance<T>()` | Get the raw server instance |
+| Method                  | Description                                    |
+| ----------------------- | ---------------------------------------------- |
+| `callTool(name, args)`  | Call a tool and get the result                 |
+| `readResource(uri)`     | Read a resource by URI                         |
+| `getPrompt(name, args)` | Get a prompt with arguments                    |
+| `listTools()`           | List all available tools                       |
+| `listResources()`       | List all available resources                   |
+| `listPrompts()`         | List all available prompts                     |
+| `hasTool(name)`         | Check if a tool exists                         |
+| `hasResource(uri)`      | Check if a resource exists (supports patterns) |
+| `hasPrompt(name)`       | Check if a prompt exists                       |
+| `getInstance<T>()`      | Get the raw server instance                    |
 
 ---
 

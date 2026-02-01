@@ -1,5 +1,7 @@
-import { describe, it, expect, beforeEach, beforeAll } from 'vitest';
 import 'reflect-metadata';
+
+import { describe, it, expect, beforeEach } from 'vitest';
+
 import { McpTestClient, createTestClient } from '../test-client.js';
 
 // Mock decorators to simulate @mcp-weave/nestjs behavior
@@ -144,8 +146,16 @@ describe('McpTestClient', () => {
     it('should list all resources', () => {
       const resources = client.listResources();
       expect(resources).toHaveLength(2);
-      expect(resources).toContainEqual({ uri: 'data://list', name: 'Data List', description: undefined });
-      expect(resources).toContainEqual({ uri: 'data://{id}', name: 'Data Item', description: undefined });
+      expect(resources).toContainEqual({
+        uri: 'data://list',
+        name: 'Data List',
+        description: undefined,
+      });
+      expect(resources).toContainEqual({
+        uri: 'data://{id}',
+        name: 'Data Item',
+        description: undefined,
+      });
     });
   });
 

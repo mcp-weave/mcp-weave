@@ -96,7 +96,9 @@ export class McpTestClient {
    */
   async callTool(name: string, args: Record<string, unknown> = {}): Promise<ToolCallResult> {
     if (!this.metadata) {
-      throw new Error('Server metadata not found. Make sure the class is decorated with @McpServer');
+      throw new Error(
+        'Server metadata not found. Make sure the class is decorated with @McpServer'
+      );
     }
 
     const tool = this.metadata.tools.find((t: ToolMeta) => t.name === name);
@@ -129,7 +131,9 @@ export class McpTestClient {
    */
   async readResource(uri: string): Promise<ResourceReadResult> {
     if (!this.metadata) {
-      throw new Error('Server metadata not found. Make sure the class is decorated with @McpServer');
+      throw new Error(
+        'Server metadata not found. Make sure the class is decorated with @McpServer'
+      );
     }
 
     for (const resource of this.metadata.resources) {
@@ -146,7 +150,9 @@ export class McpTestClient {
     }
 
     const availableResources = this.metadata.resources.map((r: ResourceMeta) => r.uri).join(', ');
-    throw new Error(`Resource '${uri}' not found. Available resources: ${availableResources || 'none'}`);
+    throw new Error(
+      `Resource '${uri}' not found. Available resources: ${availableResources || 'none'}`
+    );
   }
 
   /**
@@ -154,13 +160,17 @@ export class McpTestClient {
    */
   async getPrompt(name: string, args: Record<string, unknown> = {}): Promise<PromptGetResult> {
     if (!this.metadata) {
-      throw new Error('Server metadata not found. Make sure the class is decorated with @McpServer');
+      throw new Error(
+        'Server metadata not found. Make sure the class is decorated with @McpServer'
+      );
     }
 
     const prompt = this.metadata.prompts.find((p: PromptMeta) => p.name === name);
     if (!prompt) {
       const availablePrompts = this.metadata.prompts.map((p: PromptMeta) => p.name).join(', ');
-      throw new Error(`Prompt '${name}' not found. Available prompts: ${availablePrompts || 'none'}`);
+      throw new Error(
+        `Prompt '${name}' not found. Available prompts: ${availablePrompts || 'none'}`
+      );
     }
 
     const method = Reflect.get(this.instance as object, prompt.propertyKey);
@@ -259,7 +269,10 @@ export class McpTestClient {
     return args;
   }
 
-  private resolveResourceArgs(propertyKey: string | symbol, uriParams: Record<string, string>): unknown[] {
+  private resolveResourceArgs(
+    propertyKey: string | symbol,
+    uriParams: Record<string, string>
+  ): unknown[] {
     if (!this.metadata) return [];
 
     const params = this.metadata.params.filter(
@@ -277,7 +290,10 @@ export class McpTestClient {
     return args;
   }
 
-  private resolvePromptArgs(propertyKey: string | symbol, input: Record<string, unknown>): unknown[] {
+  private resolvePromptArgs(
+    propertyKey: string | symbol,
+    input: Record<string, unknown>
+  ): unknown[] {
     if (!this.metadata) return [];
 
     const params = this.metadata.params.filter(

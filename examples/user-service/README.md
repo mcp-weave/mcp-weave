@@ -52,29 +52,29 @@ npx @anthropic/mcp-inspector node dist/server.js
 
 ## Available Tools
 
-| Tool | Description |
-|------|-------------|
-| `create_user` | Create a new user with name, email, and role |
-| `get_user` | Get a user by their unique ID |
-| `update_user` | Update user information |
-| `delete_user` | Remove a user from the system |
-| `list_users` | List all users with optional role filtering and pagination |
-| `search_users` | Search users by name or email |
+| Tool           | Description                                                |
+| -------------- | ---------------------------------------------------------- |
+| `create_user`  | Create a new user with name, email, and role               |
+| `get_user`     | Get a user by their unique ID                              |
+| `update_user`  | Update user information                                    |
+| `delete_user`  | Remove a user from the system                              |
+| `list_users`   | List all users with optional role filtering and pagination |
+| `search_users` | Search users by name or email                              |
 
 ## Available Resources
 
-| URI | Description |
-|-----|-------------|
-| `users://list` | JSON list of all users |
-| `users://{id}` | Detailed information for a specific user |
-| `users://stats` | Statistics about users in the system |
+| URI             | Description                              |
+| --------------- | ---------------------------------------- |
+| `users://list`  | JSON list of all users                   |
+| `users://{id}`  | Detailed information for a specific user |
+| `users://stats` | Statistics about users in the system     |
 
 ## Available Prompts
 
-| Prompt | Description |
-|--------|-------------|
+| Prompt         | Description                              |
+| -------------- | ---------------------------------------- |
 | `onboard_user` | Generate a welcome message for new users |
-| `user_report` | Generate activity reports |
+| `user_report`  | Generate activity reports                |
 
 ## Example Usage
 

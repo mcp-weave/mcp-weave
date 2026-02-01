@@ -170,7 +170,12 @@ class UserServiceServer {
   })
   updateUser(
     @McpInput()
-    input: { id: string; name?: string; email?: string; role?: 'admin' | 'user' | 'guest' }
+    input: {
+      id: string;
+      name?: string;
+      email?: string;
+      role?: 'admin' | 'user' | 'guest';
+    }
   ) {
     const user = this.users.get(input.id);
 
@@ -410,7 +415,8 @@ class UserServiceServer {
   })
   onboardUser(@McpPromptArg('name') name: string, @McpPromptArg('role') role: string) {
     const roleDescriptions: Record<string, string> = {
-      admin: 'As an administrator, you have full access to manage users, settings, and system configuration.',
+      admin:
+        'As an administrator, you have full access to manage users, settings, and system configuration.',
       user: 'As a standard user, you can access all main features and collaborate with your team.',
       guest: 'As a guest, you have limited read-only access to explore our platform.',
     };

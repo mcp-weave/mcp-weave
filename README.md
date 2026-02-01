@@ -278,9 +278,9 @@ describe('UserController', () => {
 
 ## � Examples
 
-| Example | Description |
-|---------|-------------|
-| [calculator](./examples/calculator) | Basic calculator with arithmetic tools |
+| Example                                 | Description                                          |
+| --------------------------------------- | ---------------------------------------------------- |
+| [calculator](./examples/calculator)     | Basic calculator with arithmetic tools               |
 | [user-service](./examples/user-service) | Full CRUD service with tools, resources, and prompts |
 
 ```bash
