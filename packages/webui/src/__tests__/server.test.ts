@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 
 import { McpWebUI, McpWebUIOptions, ServerInfo, CallHistoryEntry } from '../server.js';
 

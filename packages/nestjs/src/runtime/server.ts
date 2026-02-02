@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import {
   createServer,
   type Server as HttpServer,
@@ -341,9 +342,9 @@ export class McpRuntimeServer {
       // Message endpoint (POST to /sse/message or similar)
       if (url.pathname === `${endpoint}/message` && req.method === 'POST') {
         // Handle message posting for SSE
-        let body = '';
+        let _body = '';
         req.on('data', chunk => {
-          body += chunk.toString();
+          _body += chunk.toString();
         });
         req.on('end', () => {
           res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -497,7 +498,6 @@ export class McpRuntimeServer {
       }
 
       // Generate accept key
-      const crypto = require('crypto');
       const acceptKey = crypto
         .createHash('sha1')
         .update(key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11')
@@ -720,7 +720,7 @@ export class McpRuntimeServer {
           };
           break;
 
-        case 'tools/call':
+        case 'tools/call': {
           const toolParams = req.params as { name: string; arguments?: Record<string, unknown> };
           const tool = this.metadata.tools.find(t => t.name === toolParams.name);
           if (!tool) {
@@ -741,6 +741,7 @@ export class McpRuntimeServer {
             ],
           };
           break;
+        }
 
         case 'resources/list':
           result = {
@@ -753,7 +754,7 @@ export class McpRuntimeServer {
           };
           break;
 
-        case 'resources/read':
+        case 'resources/read': {
           const resParams = req.params as { uri: string };
           for (const resource of this.metadata.resources) {
             const uriParams = this.extractUriParams(resource.uri, resParams.uri);
@@ -772,6 +773,7 @@ export class McpRuntimeServer {
             };
           }
           break;
+        }
 
         case 'prompts/list':
           result = {
@@ -783,7 +785,7 @@ export class McpRuntimeServer {
           };
           break;
 
-        case 'prompts/get':
+        case 'prompts/get': {
           const promptParams = req.params as { name: string; arguments?: Record<string, unknown> };
           const prompt = this.metadata.prompts.find(p => p.name === promptParams.name);
           if (!prompt) {
@@ -800,6 +802,7 @@ export class McpRuntimeServer {
           );
           result = await promptMethod.apply(this.instance, promptArgs);
           break;
+        }
 
         default:
           return {

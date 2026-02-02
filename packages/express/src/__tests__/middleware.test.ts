@@ -15,8 +15,6 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 
 import { createMcpMiddleware } from '../middleware.js';
 
-
-
 @McpServer({
   name: 'test-server',
   version: '1.0.0',

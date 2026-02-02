@@ -34,7 +34,8 @@
 - 📝 **YAML Spec** - Define your MCP server in a readable `mcp-spec.yaml` file
 - 🚀 **Multiple Frameworks** - NestJS and Express support
 - 🔌 **Multiple Transports** - stdio, SSE, and WebSocket
-- 🛠️ **Powerful CLI** - Generate, extract, and manage your MCP servers with hot reload
+- � **Authentication** - API key support with request tracking and scopes
+- �🛠️ **Powerful CLI** - Generate, extract, and manage your MCP servers with hot reload
 - 🧪 **Testing Utilities** - Mock servers and assertions for easy testing
 - 🎨 **Web UI Dashboard** - Interactive testing of tools, resources, and prompts
 - 📦 **TypeScript First** - Full type safety and excellent DX
@@ -286,7 +287,84 @@ describe('UserController', () => {
 });
 ```
 
-## � Examples
+## 🔐 Authentication
+
+MCP-Weave supports API key authentication to secure your MCP server endpoints.
+
+### Basic Setup
+
+```typescript
+import { McpRuntimeServer, generateApiKey } from '@mcp-weave/nestjs';
+
+// Generate a secure API key with prefix
+const apiKey = generateApiKey('myapp'); // myapp_xxxxx...
+
+const server = new McpRuntimeServer(MyServer, {
+  transport: 'sse',
+  port: 3000,
+  auth: {
+    enabled: true,
+    apiKeys: [{ key: apiKey, name: 'Production', scopes: ['read', 'write'] }],
+  },
+});
+```
+
+### Authentication Methods
+
+API keys can be provided via:
+
+- **Header**: `x-api-key: your-api-key`
+- **Bearer Token**: `Authorization: Bearer your-api-key`
+- **Query Parameter**: `?api_key=your-api-key`
+
+### Advanced Configuration
+
+```typescript
+const server = new McpRuntimeServer(MyServer, {
+  auth: {
+    enabled: true,
+    apiKeys: [
+      {
+        key: 'prod_key_123',
+        name: 'Production',
+        scopes: ['read', 'write'],
+        expiresAt: new Date('2025-12-31'),
+        metadata: { tier: 'premium' },
+      },
+    ],
+    // Optional callbacks
+    onAuthSuccess: (req, result) => {
+      console.log(`Auth success: ${result.keyName} (${result.requestId})`);
+    },
+    onAuthFailure: (req, reason) => {
+      console.log(`Auth failed: ${reason}`);
+    },
+    // Custom auth logic
+    customAuth: async req => {
+      // Return AuthResult or null to fall back to default
+      return null;
+    },
+  },
+});
+```
+
+### Express Middleware
+
+```typescript
+import { createMcpExpressMiddleware } from '@mcp-weave/express';
+
+app.use(
+  '/mcp',
+  createMcpExpressMiddleware(server, {
+    auth: {
+      enabled: true,
+      apiKeys: [{ key: 'my-api-key', name: 'Default' }],
+    },
+  })
+);
+```
+
+## 📁 Examples
 
 | Example                                 | Description                                          |
 | --------------------------------------- | ---------------------------------------------------- |
@@ -322,13 +400,19 @@ pnpm install && pnpm build && pnpm start
 - [x] Enhanced testing utilities with `McpTestClient`
 - [x] Hot reload (`mcp-weave start --watch`)
 
-### v0.3.0 (Current) ✅
+### v0.3.0 ✅
 
 - [x] WebSocket transport
 - [x] Web UI dashboard for testing (`@mcp-weave/webui`)
 - [x] 235 unit tests passing
 
-### v0.4.0+
+### v0.4.0 (Current) ✅
+
+- [x] API key authentication with request tracking
+- [x] Auth support for Express middleware and WebUI
+- [x] 265+ unit tests passing
+
+### v0.5.0+
 
 - [ ] Python/FastAPI support
 - [ ] Go/Gin support
