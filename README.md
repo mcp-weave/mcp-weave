@@ -32,9 +32,11 @@
 - 🎯 **Simple Decorators** - Transform any class into an MCP server with intuitive annotations
 - 🔄 **Two-Way Flow** - Code-first or Spec-first development approach
 - 📝 **YAML Spec** - Define your MCP server in a readable `mcp-spec.yaml` file
-- 🚀 **Multiple Frameworks** - NestJS support (Express, FastAPI coming soon)
-- 🛠️ **Powerful CLI** - Generate, extract, and manage your MCP servers
+- 🚀 **Multiple Frameworks** - NestJS and Express support
+- 🔌 **Multiple Transports** - stdio, SSE, and WebSocket
+- 🛠️ **Powerful CLI** - Generate, extract, and manage your MCP servers with hot reload
 - 🧪 **Testing Utilities** - Mock servers and assertions for easy testing
+- 🎨 **Web UI Dashboard** - Interactive testing of tools, resources, and prompts
 - 📦 **TypeScript First** - Full type safety and excellent DX
 
 ## 🚀 Quick Start
@@ -127,7 +129,9 @@ export class UserController {
 | [`@mcp-weave/core`](./packages/core)       | Core functionality - parser, validator, generator | [![npm](https://img.shields.io/npm/v/@mcp-weave/core.svg?style=flat-square)](https://www.npmjs.com/package/@mcp-weave/core)       |
 | [`@mcp-weave/cli`](./packages/cli)         | Command-line interface                            | [![npm](https://img.shields.io/npm/v/@mcp-weave/cli.svg?style=flat-square)](https://www.npmjs.com/package/@mcp-weave/cli)         |
 | [`@mcp-weave/nestjs`](./packages/nestjs)   | NestJS integration with decorators                | [![npm](https://img.shields.io/npm/v/@mcp-weave/nestjs.svg?style=flat-square)](https://www.npmjs.com/package/@mcp-weave/nestjs)   |
+| [`@mcp-weave/express`](./packages/express) | Express middleware and server                     | [![npm](https://img.shields.io/npm/v/@mcp-weave/express.svg?style=flat-square)](https://www.npmjs.com/package/@mcp-weave/express) |
 | [`@mcp-weave/testing`](./packages/testing) | Testing utilities and mocks                       | [![npm](https://img.shields.io/npm/v/@mcp-weave/testing.svg?style=flat-square)](https://www.npmjs.com/package/@mcp-weave/testing) |
+| [`@mcp-weave/webui`](./packages/webui)     | Web UI dashboard for testing                      | [![npm](https://img.shields.io/npm/v/@mcp-weave/webui.svg?style=flat-square)](https://www.npmjs.com/package/@mcp-weave/webui)     |
 
 ## 🔄 Two Development Flows
 
@@ -215,6 +219,12 @@ mcp-weave extract --source ./src --output mcp-spec.yaml
 # Start MCP server
 mcp-weave start --transport stdio
 
+# Start with SSE transport
+mcp-weave start --transport sse --port 3000
+
+# Start with hot reload
+mcp-weave start --watch
+
 # Export spec in different formats
 mcp-weave export --format yaml --output spec.yaml
 ```
@@ -295,30 +305,34 @@ pnpm install && pnpm build && pnpm start
 
 ## 🗺️ Roadmap
 
-### v0.1.0 - MVP ✨
+### v0.1.0 - MVP ✅
 
 - [x] Core spec parser and validator
 - [x] NestJS decorators (`@McpServer`, `@McpTool`, `@McpResource`, `@McpPrompt`)
 - [x] CLI with `generate`, `init`, `start`, `extract` commands
 - [x] Stdio transport
-- [x] 152 unit tests passing
 - [x] CI/CD with GitHub Actions
 - [x] Examples (calculator, user-service)
 - [x] Testing utilities package
 
-### v0.2.0
+### v0.2.0 ✅
 
-- [ ] Express support (`@mcp-weave/express`)
-- [ ] SSE transport
-- [ ] Enhanced testing utilities
-- [ ] Hot reload (`mcp-weave start --watch`)
+- [x] Express support (`@mcp-weave/express`)
+- [x] SSE transport
+- [x] Enhanced testing utilities with `McpTestClient`
+- [x] Hot reload (`mcp-weave start --watch`)
 
-### v0.3.0+
+### v0.3.0 (Current) ✅
+
+- [x] WebSocket transport
+- [x] Web UI dashboard for testing (`@mcp-weave/webui`)
+- [x] 235 unit tests passing
+
+### v0.4.0+
 
 - [ ] Python/FastAPI support
-- [ ] WebSocket transport
-- [ ] Web UI for testing
 - [ ] Go/Gin support
+- [ ] Plugin system
 
 ## 🤝 Contributing
 
