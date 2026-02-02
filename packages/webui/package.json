@@ -1,6 +1,6 @@
 {
   "name": "@mcp-weave/webui",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Web UI dashboard for testing MCP servers",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
