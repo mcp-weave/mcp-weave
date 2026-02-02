@@ -1,6 +1,6 @@
 {
   "name": "@mcp-weave/nestjs",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "NestJS integration for MCP-Weave - decorators and runtime",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
