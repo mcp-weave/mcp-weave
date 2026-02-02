@@ -4,11 +4,12 @@ import 'reflect-metadata';
 describe('WebSocket Transport', () => {
   describe('McpRuntimeOptions', () => {
     it('should accept websocket transport option', () => {
-      const options: { transport: 'stdio' | 'sse' | 'websocket'; port: number; endpoint: string } = {
-        transport: 'websocket',
-        port: 8080,
-        endpoint: '/ws',
-      };
+      const options: { transport: 'stdio' | 'sse' | 'websocket'; port: number; endpoint: string } =
+        {
+          transport: 'websocket',
+          port: 8080,
+          endpoint: '/ws',
+        };
 
       expect(options.transport).toBe('websocket');
       expect(options.port).toBe(8080);
@@ -24,11 +25,12 @@ describe('WebSocket Transport', () => {
     });
 
     it('should accept sse transport option', () => {
-      const options: { transport: 'stdio' | 'sse' | 'websocket'; port: number; endpoint: string } = {
-        transport: 'sse',
-        port: 3000,
-        endpoint: '/sse',
-      };
+      const options: { transport: 'stdio' | 'sse' | 'websocket'; port: number; endpoint: string } =
+        {
+          transport: 'sse',
+          port: 3000,
+          endpoint: '/sse',
+        };
 
       expect(options.transport).toBe('sse');
     });
@@ -88,16 +90,16 @@ describe('WebSocket Transport', () => {
     it('should encode small text frame correctly', () => {
       const message = 'Hello';
       const frame = encodeFrame(message);
-      
+
       expect(frame[0]).toBe(0x81); // FIN + Text opcode
-      expect(frame[1]).toBe(5);    // Length
+      expect(frame[1]).toBe(5); // Length
       expect(frame.slice(2).toString('utf8')).toBe('Hello');
     });
 
     it('should encode medium text frame correctly', () => {
       const message = 'A'.repeat(200);
       const frame = encodeFrame(message);
-      
+
       expect(frame[0]).toBe(0x81);
       expect(frame[1]).toBe(126);
       expect(frame.readUInt16BE(2)).toBe(200);
@@ -107,7 +109,7 @@ describe('WebSocket Transport', () => {
       const message = 'Hello';
       const frame = encodeFrame(message);
       const decoded = decodeFrame(frame);
-      
+
       expect(decoded).not.toBeNull();
       expect(decoded!.opcode).toBe(1); // Text frame
       expect(decoded!.payload).toBe('Hello');
@@ -117,7 +119,7 @@ describe('WebSocket Transport', () => {
       const message = 'A'.repeat(200);
       const frame = encodeFrame(message);
       const decoded = decodeFrame(frame);
-      
+
       expect(decoded).not.toBeNull();
       expect(decoded!.opcode).toBe(1);
       expect(decoded!.payload).toBe(message);
@@ -126,7 +128,7 @@ describe('WebSocket Transport', () => {
     it('should return null for incomplete frame', () => {
       const buffer = Buffer.from([0x81]); // Only 1 byte
       const decoded = decodeFrame(buffer);
-      
+
       expect(decoded).toBeNull();
     });
 
@@ -138,7 +140,7 @@ describe('WebSocket Transport', () => {
       });
       const frame = encodeFrame(message);
       const decoded = decodeFrame(frame);
-      
+
       expect(decoded).not.toBeNull();
       const parsed = JSON.parse(decoded!.payload);
       expect(parsed.jsonrpc).toBe('2.0');
@@ -151,7 +153,11 @@ describe('WebSocket Transport', () => {
       // Test that the function signature accepts websocket transport
       const mockCreateMcpServer = async (
         _target: Function,
-        options: { transport?: 'stdio' | 'sse' | 'websocket'; port?: number; endpoint?: string } = {}
+        options: {
+          transport?: 'stdio' | 'sse' | 'websocket';
+          port?: number;
+          endpoint?: string;
+        } = {}
       ) => {
         if (options.transport === 'websocket') {
           return { transport: 'websocket', port: options.port ?? 8080 };

@@ -2,12 +2,15 @@ import 'reflect-metadata';
 import { EventEmitter } from 'events';
 import * as http from 'http';
 import * as url from 'url';
+
 import {
   isMcpServer,
   getServerMetadata,
   getToolsMetadata,
   getResourcesMetadata,
   getPromptsMetadata,
+  type McpAuthOptions,
+  createAuthMiddleware,
 } from '@mcp-weave/nestjs';
 
 /**
@@ -24,6 +27,8 @@ export interface McpWebUIOptions {
   theme?: 'light' | 'dark';
   /** Enable server logs panel */
   enableLogs?: boolean;
+  /** Authentication options */
+  auth?: McpAuthOptions;
 }
 
 /**
@@ -85,6 +90,7 @@ export interface CallHistoryEntry {
   error?: string;
   timestamp: Date;
   duration: number;
+  clientId?: string;
 }
 
 /**
@@ -93,22 +99,20 @@ export interface CallHistoryEntry {
 export class McpWebUI extends EventEmitter {
   private serverClass: new (...args: unknown[]) => unknown;
   private serverInstance: unknown;
-  private options: Required<McpWebUIOptions>;
+  private options: Required<Omit<McpWebUIOptions, 'auth'>> & { auth?: McpAuthOptions };
   private httpServer: http.Server | null = null;
   private serverInfo: ServerInfo | null = null;
   private callHistory: CallHistoryEntry[] = [];
   private logs: string[] = [];
+  private authMiddleware: ReturnType<typeof createAuthMiddleware>;
 
-  constructor(
-    serverClass: new (...args: unknown[]) => unknown,
-    options: McpWebUIOptions = {}
-  ) {
+  constructor(serverClass: new (...args: unknown[]) => unknown, options: McpWebUIOptions = {}) {
     super();
-    
+
     if (!isMcpServer(serverClass)) {
       throw new Error(`Class ${serverClass.name} is not decorated with @McpServer`);
     }
-    
+
     this.serverClass = serverClass;
     this.options = {
       port: options.port ?? 3000,
@@ -116,7 +120,10 @@ export class McpWebUI extends EventEmitter {
       title: options.title ?? 'MCP Server Dashboard',
       theme: options.theme ?? 'dark',
       enableLogs: options.enableLogs ?? true,
+      auth: options.auth,
     };
+
+    this.authMiddleware = createAuthMiddleware(options.auth);
   }
 
   /**
@@ -124,12 +131,12 @@ export class McpWebUI extends EventEmitter {
    */
   private initialize(): void {
     this.serverInstance = new this.serverClass();
-    
+
     const serverMeta = getServerMetadata(this.serverClass);
     const toolsMeta = getToolsMetadata(this.serverClass);
     const resourcesMeta = getResourcesMetadata(this.serverClass);
     const promptsMeta = getPromptsMetadata(this.serverClass);
-    
+
     this.serverInfo = {
       name: serverMeta?.name ?? 'Unknown Server',
       version: serverMeta?.version ?? '1.0.0',
@@ -161,14 +168,14 @@ export class McpWebUI extends EventEmitter {
    */
   async start(): Promise<void> {
     this.initialize();
-    
+
     return new Promise((resolve, reject) => {
       this.httpServer = http.createServer((req, res) => {
         this.handleRequest(req, res);
       });
-      
+
       this.httpServer.on('error', reject);
-      
+
       this.httpServer.listen(this.options.port, this.options.host, () => {
         // Get actual port (important when port: 0 was used)
         const address = this.httpServer!.address();
@@ -190,8 +197,8 @@ export class McpWebUI extends EventEmitter {
         resolve();
         return;
       }
-      
-      this.httpServer.close((err) => {
+
+      this.httpServer.close(err => {
         this.httpServer = null;
         if (err) reject(err);
         else resolve();
@@ -236,14 +243,14 @@ export class McpWebUI extends EventEmitter {
   /**
    * Handle HTTP requests
    */
-  private handleRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
+  private async handleRequest(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
     const parsedUrl = url.parse(req.url ?? '/', true);
     const pathname = parsedUrl.pathname ?? '/';
 
     // CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Api-Key');
 
     if (req.method === 'OPTIONS') {
       res.writeHead(200);
@@ -251,10 +258,30 @@ export class McpWebUI extends EventEmitter {
       return;
     }
 
-    // Route handlers
+    // Dashboard is public (no auth required for UI)
     if (pathname === '/' && req.method === 'GET') {
       this.serveDashboard(res);
-    } else if (pathname === '/api/info' && req.method === 'GET') {
+      return;
+    }
+
+    // API endpoints require authentication
+    if (pathname.startsWith('/api/')) {
+      const authResult = await this.authMiddleware(req, res);
+      if (!authResult) return; // Auth failed
+
+      // Log authenticated request
+      if (this.options.auth?.enabled) {
+        this.log(
+          `[${authResult.requestId}] ${authResult.auth.clientName ?? authResult.auth.clientId} - ${req.method} ${pathname}`
+        );
+      }
+
+      // Set request ID header
+      res.setHeader('X-Request-Id', authResult.requestId);
+    }
+
+    // Route handlers
+    if (pathname === '/api/info' && req.method === 'GET') {
       this.serveServerInfo(res);
     } else if (pathname === '/api/tools' && req.method === 'GET') {
       this.serveTools(res);
@@ -292,7 +319,12 @@ export class McpWebUI extends EventEmitter {
    */
   private serveServerInfo(res: http.ServerResponse): void {
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify(this.serverInfo));
+    res.end(
+      JSON.stringify({
+        ...this.serverInfo,
+        authEnabled: this.options.auth?.enabled ?? false,
+      })
+    );
   }
 
   /**
@@ -342,7 +374,7 @@ export class McpWebUI extends EventEmitter {
     try {
       const body = await this.readBody(req);
       const { name, input } = JSON.parse(body);
-      
+
       const tool = this.serverInfo?.tools.find(t => t.name === name);
       if (!tool) {
         res.writeHead(404, { 'Content-Type': 'application/json' });
@@ -363,26 +395,26 @@ export class McpWebUI extends EventEmitter {
       try {
         this.log(`Calling tool: ${name}`);
         this.emit('tool:call', name, input);
-        
+
         const method = (this.serverInstance as Record<string, unknown>)[tool.method] as Function;
         const result = await method.call(this.serverInstance, input);
-        
+
         historyEntry.output = result;
         historyEntry.duration = Date.now() - startTime;
         this.callHistory.unshift(historyEntry);
-        
+
         this.log(`Tool ${name} completed in ${historyEntry.duration}ms`);
         this.emit('tool:result', name, result);
-        
+
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: true, result }));
       } catch (error) {
         historyEntry.error = error instanceof Error ? error.message : String(error);
         historyEntry.duration = Date.now() - startTime;
         this.callHistory.unshift(historyEntry);
-        
+
         this.log(`Tool ${name} failed: ${historyEntry.error}`);
-        
+
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: historyEntry.error }));
       }
@@ -395,18 +427,21 @@ export class McpWebUI extends EventEmitter {
   /**
    * Handle resource read request
    */
-  private async handleReadResource(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  private async handleReadResource(
+    req: http.IncomingMessage,
+    res: http.ServerResponse
+  ): Promise<void> {
     try {
       const body = await this.readBody(req);
       const { uri } = JSON.parse(body);
-      
+
       const resource = this.serverInfo?.resources.find(r => {
         // Match exact URI or template pattern
         const pattern = r.uri.replace(/{[^}]+}/g, '[^/]+');
         const regex = new RegExp(`^${pattern}$`);
         return regex.test(uri);
       });
-      
+
       if (!resource) {
         res.writeHead(404, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: `Resource matching '${uri}' not found` }));
@@ -425,28 +460,30 @@ export class McpWebUI extends EventEmitter {
       try {
         this.log(`Reading resource: ${uri}`);
         this.emit('resource:read', uri);
-        
+
         // Extract parameters from URI template
         const params = this.extractUriParams(resource.uri, uri);
-        
-        const method = (this.serverInstance as Record<string, unknown>)[resource.method] as Function;
+
+        const method = (this.serverInstance as Record<string, unknown>)[
+          resource.method
+        ] as Function;
         const result = await method.call(this.serverInstance, params);
-        
+
         historyEntry.output = result;
         historyEntry.duration = Date.now() - startTime;
         this.callHistory.unshift(historyEntry);
-        
+
         this.log(`Resource ${uri} read in ${historyEntry.duration}ms`);
-        
+
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: true, result }));
       } catch (error) {
         historyEntry.error = error instanceof Error ? error.message : String(error);
         historyEntry.duration = Date.now() - startTime;
         this.callHistory.unshift(historyEntry);
-        
+
         this.log(`Resource ${uri} failed: ${historyEntry.error}`);
-        
+
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: historyEntry.error }));
       }
@@ -459,11 +496,14 @@ export class McpWebUI extends EventEmitter {
   /**
    * Handle prompt get request
    */
-  private async handleGetPrompt(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  private async handleGetPrompt(
+    req: http.IncomingMessage,
+    res: http.ServerResponse
+  ): Promise<void> {
     try {
       const body = await this.readBody(req);
       const { name, args } = JSON.parse(body);
-      
+
       const prompt = this.serverInfo?.prompts.find(p => p.name === name);
       if (!prompt) {
         res.writeHead(404, { 'Content-Type': 'application/json' });
@@ -484,25 +524,25 @@ export class McpWebUI extends EventEmitter {
       try {
         this.log(`Getting prompt: ${name}`);
         this.emit('prompt:get', name, args);
-        
+
         const method = (this.serverInstance as Record<string, unknown>)[prompt.method] as Function;
         const result = await method.call(this.serverInstance, args);
-        
+
         historyEntry.output = result;
         historyEntry.duration = Date.now() - startTime;
         this.callHistory.unshift(historyEntry);
-        
+
         this.log(`Prompt ${name} completed in ${historyEntry.duration}ms`);
-        
+
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: true, result }));
       } catch (error) {
         historyEntry.error = error instanceof Error ? error.message : String(error);
         historyEntry.duration = Date.now() - startTime;
         this.callHistory.unshift(historyEntry);
-        
+
         this.log(`Prompt ${name} failed: ${historyEntry.error}`);
-        
+
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: historyEntry.error }));
       }
@@ -518,7 +558,7 @@ export class McpWebUI extends EventEmitter {
   private readBody(req: http.IncomingMessage): Promise<string> {
     return new Promise((resolve, reject) => {
       let body = '';
-      req.on('data', chunk => body += chunk);
+      req.on('data', chunk => (body += chunk));
       req.on('end', () => resolve(body));
       req.on('error', reject);
     });
@@ -531,7 +571,7 @@ export class McpWebUI extends EventEmitter {
     const params: Record<string, string> = {};
     const templateParts = template.split('/');
     const uriParts = uri.split('/');
-    
+
     templateParts.forEach((part, index) => {
       const match = part.match(/^{([^}]+)}$/);
       const uriPart = uriParts[index];
@@ -539,7 +579,7 @@ export class McpWebUI extends EventEmitter {
         params[match[1]] = uriPart;
       }
     });
-    
+
     return params;
   }
 
@@ -555,7 +595,7 @@ export class McpWebUI extends EventEmitter {
    */
   private generateDashboardHTML(): string {
     const isDark = this.options.theme === 'dark';
-    
+
     return `<!DOCTYPE html>
 <html lang="en">
 <head>

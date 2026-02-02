@@ -1,7 +1,6 @@
 import 'reflect-metadata';
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import express, { type Express } from 'express';
-import { createMcpMiddleware } from '../middleware.js';
+import type { Server } from 'http';
+
 import {
   McpServer,
   McpTool,
@@ -11,7 +10,12 @@ import {
   McpParam,
   McpPromptArg,
 } from '@mcp-weave/nestjs';
-import type { Server } from 'http';
+import express, { type Express } from 'express';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+
+import { createMcpMiddleware } from '../middleware.js';
+
+
 
 @McpServer({
   name: 'test-server',
@@ -131,6 +135,18 @@ describe('createMcpMiddleware', () => {
   describe('Health endpoint', () => {
     it('should return health status', async () => {
       const response = await fetch(`${baseUrl}/health`);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.status).toBe('ok');
+      expect(data.server).toBe('test-server');
+      expect(data.version).toBe('1.0.0');
+    });
+  });
+
+  describe('Server info endpoint', () => {
+    it('should return server info with capabilities', async () => {
+      const response = await fetch(`${baseUrl}/`);
       const data = await response.json();
 
       expect(response.status).toBe(200);

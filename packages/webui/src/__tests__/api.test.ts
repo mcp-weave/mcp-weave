@@ -1,6 +1,8 @@
 import 'reflect-metadata';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as http from 'http';
+
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
 import { McpWebUI } from '../server.js';
 
 // Use the real METADATA_KEYS
@@ -16,9 +18,12 @@ const METADATA_KEYS = {
 class ApiTestServer {
   calculate(input: { a: number; b: number; op: string }) {
     switch (input.op) {
-      case 'add': return { result: input.a + input.b };
-      case 'sub': return { result: input.a - input.b };
-      default: throw new Error(`Unknown operation: ${input.op}`);
+      case 'add':
+        return { result: input.a + input.b };
+      case 'sub':
+        return { result: input.a - input.b };
+      default:
+        throw new Error(`Unknown operation: ${input.op}`);
     }
   }
 
@@ -35,23 +40,56 @@ class ApiTestServer {
 }
 
 // Apply metadata manually (simulating decorators)
-Reflect.defineMetadata(METADATA_KEYS.SERVER, { 
-  name: 'api-test-server', 
-  version: '1.0.0',
-  target: ApiTestServer 
-}, ApiTestServer);
+Reflect.defineMetadata(
+  METADATA_KEYS.SERVER,
+  {
+    name: 'api-test-server',
+    version: '1.0.0',
+    target: ApiTestServer,
+  },
+  ApiTestServer
+);
 
-Reflect.defineMetadata(METADATA_KEYS.TOOLS, [
-  { name: 'calculate', description: 'Calculate', propertyKey: 'calculate', target: ApiTestServer }
-], ApiTestServer);
+Reflect.defineMetadata(
+  METADATA_KEYS.TOOLS,
+  [
+    {
+      name: 'calculate',
+      description: 'Calculate',
+      propertyKey: 'calculate',
+      target: ApiTestServer,
+    },
+  ],
+  ApiTestServer
+);
 
-Reflect.defineMetadata(METADATA_KEYS.RESOURCES, [
-  { uri: 'data://{key}', name: 'Data', mimeType: 'application/json', propertyKey: 'getData', target: ApiTestServer }
-], ApiTestServer);
+Reflect.defineMetadata(
+  METADATA_KEYS.RESOURCES,
+  [
+    {
+      uri: 'data://{key}',
+      name: 'Data',
+      mimeType: 'application/json',
+      propertyKey: 'getData',
+      target: ApiTestServer,
+    },
+  ],
+  ApiTestServer
+);
 
-Reflect.defineMetadata(METADATA_KEYS.PROMPTS, [
-  { name: 'greet', description: 'Greet', arguments: [{ name: 'name', required: true }], propertyKey: 'greet', target: ApiTestServer }
-], ApiTestServer);
+Reflect.defineMetadata(
+  METADATA_KEYS.PROMPTS,
+  [
+    {
+      name: 'greet',
+      description: 'Greet',
+      arguments: [{ name: 'name', required: true }],
+      propertyKey: 'greet',
+      target: ApiTestServer,
+    },
+  ],
+  ApiTestServer
+);
 
 // Helper to make HTTP requests
 function httpRequest(
@@ -59,10 +97,12 @@ function httpRequest(
   body?: string
 ): Promise<{ status: number; headers: http.IncomingHttpHeaders; body: string }> {
   return new Promise((resolve, reject) => {
-    const req = http.request(options, (res) => {
+    const req = http.request(options, res => {
       let data = '';
-      res.on('data', (chunk) => data += chunk);
-      res.on('end', () => resolve({ status: res.statusCode ?? 0, headers: res.headers, body: data }));
+      res.on('data', chunk => (data += chunk));
+      res.on('end', () =>
+        resolve({ status: res.statusCode ?? 0, headers: res.headers, body: data })
+      );
     });
     req.on('error', reject);
     if (body) req.write(body);
@@ -95,7 +135,7 @@ describe('McpWebUI HTTP API', () => {
         path: '/',
         method: 'GET',
       });
-      
+
       expect(res.status).toBe(200);
       expect(res.headers['content-type']).toBe('text/html');
       expect(res.body).toContain('<!DOCTYPE html>');
@@ -111,7 +151,7 @@ describe('McpWebUI HTTP API', () => {
         path: '/api/info',
         method: 'GET',
       });
-      
+
       expect(res.status).toBe(200);
       const data = JSON.parse(res.body);
       expect(data.name).toBe('api-test-server');
@@ -130,7 +170,7 @@ describe('McpWebUI HTTP API', () => {
         path: '/api/tools',
         method: 'GET',
       });
-      
+
       expect(res.status).toBe(200);
       const tools = JSON.parse(res.body);
       expect(tools).toHaveLength(1);
@@ -146,7 +186,7 @@ describe('McpWebUI HTTP API', () => {
         path: '/api/resources',
         method: 'GET',
       });
-      
+
       expect(res.status).toBe(200);
       const resources = JSON.parse(res.body);
       expect(resources).toHaveLength(1);
@@ -162,7 +202,7 @@ describe('McpWebUI HTTP API', () => {
         path: '/api/prompts',
         method: 'GET',
       });
-      
+
       expect(res.status).toBe(200);
       const prompts = JSON.parse(res.body);
       expect(prompts).toHaveLength(1);
@@ -182,7 +222,7 @@ describe('McpWebUI HTTP API', () => {
         },
         JSON.stringify({ name: 'calculate', input: { a: 5, b: 3, op: 'add' } })
       );
-      
+
       expect(res.status).toBe(200);
       const data = JSON.parse(res.body);
       expect(data.success).toBe(true);
@@ -200,7 +240,7 @@ describe('McpWebUI HTTP API', () => {
         },
         JSON.stringify({ name: 'calculate', input: { a: 1, b: 2, op: 'unknown' } })
       );
-      
+
       expect(res.status).toBe(500);
       const data = JSON.parse(res.body);
       expect(data.success).toBe(false);
@@ -218,7 +258,7 @@ describe('McpWebUI HTTP API', () => {
         },
         JSON.stringify({ name: 'nonexistent', input: {} })
       );
-      
+
       expect(res.status).toBe(404);
     });
 
@@ -233,7 +273,7 @@ describe('McpWebUI HTTP API', () => {
         },
         'invalid json'
       );
-      
+
       expect(res.status).toBe(400);
     });
   });
@@ -250,7 +290,7 @@ describe('McpWebUI HTTP API', () => {
         },
         JSON.stringify({ uri: 'data://test-key' })
       );
-      
+
       expect(res.status).toBe(200);
       const data = JSON.parse(res.body);
       expect(data.success).toBe(true);
@@ -268,7 +308,7 @@ describe('McpWebUI HTTP API', () => {
         },
         JSON.stringify({ uri: 'data://error' })
       );
-      
+
       expect(res.status).toBe(500);
       const data = JSON.parse(res.body);
       expect(data.success).toBe(false);
@@ -286,7 +326,7 @@ describe('McpWebUI HTTP API', () => {
         },
         JSON.stringify({ uri: 'other://something' })
       );
-      
+
       expect(res.status).toBe(404);
     });
   });
@@ -303,7 +343,7 @@ describe('McpWebUI HTTP API', () => {
         },
         JSON.stringify({ name: 'greet', args: { name: 'Alice' } })
       );
-      
+
       expect(res.status).toBe(200);
       const data = JSON.parse(res.body);
       expect(data.success).toBe(true);
@@ -321,7 +361,7 @@ describe('McpWebUI HTTP API', () => {
         },
         JSON.stringify({ name: 'unknown', args: {} })
       );
-      
+
       expect(res.status).toBe(404);
     });
   });
@@ -347,7 +387,7 @@ describe('McpWebUI HTTP API', () => {
         path: '/api/history',
         method: 'GET',
       });
-      
+
       expect(res.status).toBe(200);
       const history = JSON.parse(res.body);
       expect(history.length).toBeGreaterThanOrEqual(1);
@@ -364,7 +404,7 @@ describe('McpWebUI HTTP API', () => {
         path: '/api/logs',
         method: 'GET',
       });
-      
+
       expect(res.status).toBe(200);
       const logs = JSON.parse(res.body);
       expect(Array.isArray(logs)).toBe(true);
@@ -380,7 +420,7 @@ describe('McpWebUI HTTP API', () => {
         path: '/api/call-tool',
         method: 'OPTIONS',
       });
-      
+
       expect(res.status).toBe(200);
       expect(res.headers['access-control-allow-origin']).toBe('*');
       expect(res.headers['access-control-allow-methods']).toContain('POST');
@@ -395,7 +435,7 @@ describe('McpWebUI HTTP API', () => {
         path: '/api/unknown',
         method: 'GET',
       });
-      
+
       expect(res.status).toBe(404);
     });
   });

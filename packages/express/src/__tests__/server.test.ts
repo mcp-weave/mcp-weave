@@ -1,7 +1,8 @@
 import 'reflect-metadata';
-import { describe, it, expect, afterEach } from 'vitest';
-import { McpExpressServer } from '../server.js';
 import { McpServer, McpTool, McpInput } from '@mcp-weave/nestjs';
+import { describe, it, expect, afterEach } from 'vitest';
+
+import { McpExpressServer } from '../server.js';
 
 @McpServer({
   name: 'express-test-server',

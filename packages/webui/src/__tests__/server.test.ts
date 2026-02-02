@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
 import { McpWebUI, McpWebUIOptions, ServerInfo, CallHistoryEntry } from '../server.js';
 
 // Mock decorator function for testing
@@ -9,7 +10,11 @@ function McpServer(options: { name: string; version?: string; description?: stri
   };
 }
 
-function McpTool(options: { name: string; description?: string; inputSchema?: Record<string, unknown> }) {
+function McpTool(options: {
+  name: string;
+  description?: string;
+  inputSchema?: Record<string, unknown>;
+}) {
   return function (target: any, propertyKey: string) {
     const tools = Reflect.getMetadata('mcp:tools', target.constructor) ?? [];
     tools.push({ ...options, method: propertyKey });
@@ -25,7 +30,11 @@ function McpResource(options: { uri: string; name: string; description?: string 
   };
 }
 
-function McpPrompt(options: { name: string; description?: string; arguments?: Array<{ name: string; required?: boolean }> }) {
+function McpPrompt(options: {
+  name: string;
+  description?: string;
+  arguments?: Array<{ name: string; required?: boolean }>;
+}) {
   return function (target: any, propertyKey: string) {
     const prompts = Reflect.getMetadata('mcp:prompts', target.constructor) ?? [];
     prompts.push({ ...options, method: propertyKey });
@@ -51,7 +60,11 @@ class TestServer {
     return { id: params.id, name: 'Test User' };
   }
 
-  @McpPrompt({ name: 'welcome', description: 'Welcome prompt', arguments: [{ name: 'name', required: true }] })
+  @McpPrompt({
+    name: 'welcome',
+    description: 'Welcome prompt',
+    arguments: [{ name: 'name', required: true }],
+  })
   welcome(args: { name: string }) {
     return { messages: [{ role: 'user', content: `Welcome, ${args.name}!` }] };
   }
@@ -146,12 +159,12 @@ describe('McpWebUI', () => {
   describe('events', () => {
     it('should emit log events', async () => {
       webui = new McpWebUI(TestServer, { port: 0 });
-      
+
       const logSpy = vi.fn();
       webui.on('log', logSpy);
-      
+
       await webui.start();
-      
+
       expect(logSpy).toHaveBeenCalled();
       expect(logSpy.mock.calls[0][0]).toMatch(/MCP Web UI started/);
     });
@@ -190,17 +203,13 @@ describe('ServerInfo', () => {
       name: 'test',
       version: '1.0.0',
       description: 'Test server',
-      tools: [
-        { name: 'tool1', description: 'Tool 1', method: 'tool1Method' },
-      ],
-      resources: [
-        { uri: 'res://{id}', name: 'Resource 1', method: 'res1Method' },
-      ],
+      tools: [{ name: 'tool1', description: 'Tool 1', method: 'tool1Method' }],
+      resources: [{ uri: 'res://{id}', name: 'Resource 1', method: 'res1Method' }],
       prompts: [
         { name: 'prompt1', description: 'Prompt 1', method: 'prompt1Method', arguments: [] },
       ],
     };
-    
+
     expect(info.name).toBe('test');
     expect(info.tools).toHaveLength(1);
     expect(info.resources).toHaveLength(1);
@@ -219,7 +228,7 @@ describe('CallHistoryEntry', () => {
       timestamp: new Date(),
       duration: 10,
     };
-    
+
     expect(entry.id).toBe('123');
     expect(entry.type).toBe('tool');
     expect(entry.name).toBe('add');
@@ -235,7 +244,7 @@ describe('CallHistoryEntry', () => {
       timestamp: new Date(),
       duration: 5,
     };
-    
+
     expect(entry.error).toBe('Not found');
   });
 });

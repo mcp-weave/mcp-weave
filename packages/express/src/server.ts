@@ -1,6 +1,7 @@
-import express, { type Express, type RequestHandler } from 'express';
-import { createMcpMiddleware, type McpMiddlewareOptions } from './middleware.js';
 import { extractMetadata } from '@mcp-weave/nestjs';
+import express, { type Express, type RequestHandler } from 'express';
+
+import { createMcpMiddleware, type McpMiddlewareOptions } from './middleware.js';
 
 /**
  * Options for MCP Express server

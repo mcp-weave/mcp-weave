@@ -191,6 +191,7 @@ await server.startWebSocket({ port: 8080, endpoint: '/ws' });
 ```
 
 **Funcionalidades:**
+
 - Suporte a WebSocket com upgrade HTTP
 - Frame encoding/decoding (text frames)
 - Ping/pong para keepalive
@@ -214,6 +215,7 @@ await webui.start();
 ```
 
 **Dashboard Features:**
+
 - Server info panel (name, version, capabilities)
 - Tools panel with input forms
 - Resources panel with URI template support
@@ -234,15 +236,15 @@ await webui.start();
 
 ### Pacotes Implementados
 
-| Pacote | Versão | Descrição | Testes |
-|--------|--------|-----------|--------|
-| @mcp-weave/core | 0.1.1 | Parser YAML, validação Zod, gerador de código | 51 |
-| @mcp-weave/nestjs | 0.1.1 | Decorators, runtime server, transports | 52 |
-| @mcp-weave/cli | 0.1.2 | Comandos generate, init, start, extract | 12 |
-| @mcp-weave/testing | 0.2.0 | Mock server, transport, assertions | 68 |
-| @mcp-weave/express | 0.1.0 | Middleware Express para MCP | 19 |
-| @mcp-weave/webui | 0.1.0 | Dashboard web para testes | 33 |
-| **Total** | | | **235** |
+| Pacote             | Versão | Descrição                                     | Testes  |
+| ------------------ | ------ | --------------------------------------------- | ------- |
+| @mcp-weave/core    | 0.1.1  | Parser YAML, validação Zod, gerador de código | 51      |
+| @mcp-weave/nestjs  | 0.1.1  | Decorators, runtime server, transports        | 52      |
+| @mcp-weave/cli     | 0.1.2  | Comandos generate, init, start, extract       | 12      |
+| @mcp-weave/testing | 0.2.0  | Mock server, transport, assertions            | 68      |
+| @mcp-weave/express | 0.1.0  | Middleware Express para MCP                   | 19      |
+| @mcp-weave/webui   | 0.1.0  | Dashboard web para testes                     | 33      |
+| **Total**          |        |                                               | **235** |
 
 ### Transports Suportados
 

@@ -68,19 +68,19 @@ mcp-weave webui --port 3000 --title "My Dashboard"
 
 ```typescript
 interface McpWebUIOptions {
-  port?: number;         // Default: 3000
-  host?: string;         // Default: 'localhost'
-  title?: string;        // Dashboard title
-  theme?: 'light' | 'dark';  // UI theme
-  enableLogs?: boolean;  // Show server logs
+  port?: number; // Default: 3000
+  host?: string; // Default: 'localhost'
+  title?: string; // Dashboard title
+  theme?: 'light' | 'dark'; // UI theme
+  enableLogs?: boolean; // Show server logs
 }
 
 class McpWebUI {
   constructor(serverClass: any, options?: McpWebUIOptions);
-  
+
   start(): Promise<void>;
   stop(): Promise<void>;
-  
+
   getUrl(): string;
 }
 ```

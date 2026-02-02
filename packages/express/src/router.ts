@@ -1,4 +1,5 @@
 import { Router, type RequestHandler } from 'express';
+
 import { createMcpMiddleware, type McpMiddlewareOptions } from './middleware.js';
 
 /**

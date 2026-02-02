@@ -1,5 +1,12 @@
+import {
+  extractMetadata,
+  type McpAuthOptions,
+  type AuthResult,
+  normalizeApiKeys,
+  validateApiKey,
+  generateRequestId,
+} from '@mcp-weave/nestjs';
 import type { Request, Response, NextFunction, RequestHandler } from 'express';
-import { extractMetadata } from '@mcp-weave/nestjs';
 
 /**
  * Options for MCP Express middleware
@@ -19,6 +26,11 @@ export interface McpMiddlewareOptions {
    * Custom CORS origin (default: '*')
    */
   corsOrigin?: string;
+
+  /**
+   * Authentication options
+   */
+  auth?: McpAuthOptions;
 }
 
 /**
@@ -54,7 +66,7 @@ export function createMcpMiddleware(
   target: Function,
   options: McpMiddlewareOptions = {}
 ): RequestHandler {
-  const { cors = true, corsOrigin = '*' } = options;
+  const { cors = true, corsOrigin = '*', auth } = options;
 
   // Initialize metadata
   const state: McpMiddlewareState = {
@@ -62,12 +74,45 @@ export function createMcpMiddleware(
     target,
   };
 
+  // Setup auth
+  const apiKeys = normalizeApiKeys(auth?.apiKeys);
+  const headerName = auth?.headerName ?? 'x-api-key';
+  const queryParamName = auth?.queryParamName ?? 'api_key';
+
+  // Auth helper
+  const authenticateRequest = (req: Request): AuthResult => {
+    if (!auth?.enabled) {
+      return { success: true, clientId: 'anonymous' };
+    }
+
+    // Extract token from header, auth header, or query param
+    let token = req.headers[headerName.toLowerCase()] as string | undefined;
+
+    if (!token) {
+      const authHeader = req.headers['authorization'];
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.slice(7);
+      }
+    }
+
+    if (!token) {
+      token = req.query[queryParamName] as string | undefined;
+    }
+
+    return validateApiKey(token, apiKeys);
+  };
+
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const requestId = generateRequestId();
+
+    // Attach request ID to response
+    res.setHeader('X-Request-Id', requestId);
+
     // Handle CORS
     if (cors) {
       res.setHeader('Access-Control-Allow-Origin', corsOrigin);
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Api-Key');
 
       if (req.method === 'OPTIONS') {
         res.status(200).end();
@@ -77,9 +122,42 @@ export function createMcpMiddleware(
 
     const path = req.path;
 
+    // Health check (no auth required)
+    if (path === '/health') {
+      res.json({
+        status: 'ok',
+        server: state.metadata.server?.name,
+        version: state.metadata.server?.version,
+        authEnabled: auth?.enabled ?? false,
+      });
+      return;
+    }
+
+    // Authenticate request
+    const authResult = authenticateRequest(req);
+    if (!authResult.success) {
+      auth?.onAuthFailure?.(
+        req as unknown as import('http').IncomingMessage,
+        authResult.error ?? 'Auth failed'
+      );
+      res.status(401).json({
+        error: 'Unauthorized',
+        message: authResult.error ?? 'Authentication required',
+        requestId,
+      });
+      return;
+    }
+
+    // Log authenticated request
+    if (auth?.enabled) {
+      console.log(
+        `[${requestId}] ${authResult.clientName ?? authResult.clientId} - ${req.method} ${path}`
+      );
+    }
+
     try {
-      // Health check
-      if (path === '/health' || path === '/') {
+      // Server info
+      if (path === '/') {
         res.json({
           status: 'ok',
           server: state.metadata.server?.name,
@@ -89,6 +167,8 @@ export function createMcpMiddleware(
             resources: state.metadata.resources.length,
             prompts: state.metadata.prompts.length,
           },
+          client: authResult.clientName,
+          requestId,
         });
         return;
       }

@@ -1,11 +1,19 @@
-import { Server, StdioServerTransport, SSEServerTransport, AnyObjectSchema } from './sdk-compat.js';
-import { extractMetadata } from '../metadata/storage.js';
 import {
   createServer,
   type Server as HttpServer,
   type IncomingMessage,
   type ServerResponse,
 } from 'http';
+
+import { Server, StdioServerTransport, SSEServerTransport, AnyObjectSchema } from './sdk-compat.js';
+import {
+  type McpAuthOptions,
+  createAuthMiddleware,
+  extractApiKey,
+  validateApiKey,
+  normalizeApiKeys,
+} from '../auth/index.js';
+import { extractMetadata } from '../metadata/storage.js';
 
 /**
  * Options for MCP runtime server
@@ -25,6 +33,11 @@ export interface McpRuntimeOptions {
    * Endpoint path for SSE/WebSocket (default: '/sse' or '/ws')
    */
   endpoint?: string;
+
+  /**
+   * Authentication options
+   */
+  auth?: McpAuthOptions;
 }
 
 /**
@@ -34,13 +47,19 @@ export class McpRuntimeServer {
   private server: Server;
   private instance: unknown;
   private metadata;
+  private authOptions: McpAuthOptions;
+  private authMiddleware: ReturnType<typeof createAuthMiddleware>;
 
-  constructor(target: Function, _options: McpRuntimeOptions = {}) {
+  constructor(target: Function, options: McpRuntimeOptions = {}) {
     this.metadata = extractMetadata(target);
 
     if (!this.metadata.server) {
       throw new Error(`Class ${target.name} is not decorated with @McpServer`);
     }
+
+    // Setup auth
+    this.authOptions = options.auth ?? {};
+    this.authMiddleware = createAuthMiddleware(this.authOptions);
 
     this.server = new Server(
       {
@@ -291,7 +310,7 @@ export class McpRuntimeServer {
       // Handle CORS
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Api-Key');
 
       if (req.method === 'OPTIONS') {
         res.writeHead(200);
@@ -299,7 +318,18 @@ export class McpRuntimeServer {
         return;
       }
 
+      // Authenticate request
+      const authResult = await this.authMiddleware(req, res);
+      if (!authResult) return; // Auth failed, response already sent
+
       const url = new URL(req.url ?? '/', `http://localhost:${port}`);
+
+      // Log authenticated request
+      if (this.authOptions.enabled) {
+        console.error(
+          `[${authResult.requestId}] ${authResult.auth.clientName ?? authResult.auth.clientId} - ${req.method} ${url.pathname}`
+        );
+      }
 
       // SSE endpoint
       if (url.pathname === endpoint && req.method === 'GET') {
@@ -366,11 +396,14 @@ export class McpRuntimeServer {
     const endpoint = options.endpoint ?? '/ws';
 
     // Create HTTP server for WebSocket upgrade
-    const httpServer = createServer((req: IncomingMessage, res: ServerResponse) => {
+    const httpServer = createServer(async (req: IncomingMessage, res: ServerResponse) => {
       // Handle CORS
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Upgrade, Connection');
+      res.setHeader(
+        'Access-Control-Allow-Headers',
+        'Content-Type, Upgrade, Connection, Authorization, X-Api-Key'
+      );
 
       if (req.method === 'OPTIONS') {
         res.writeHead(200);
@@ -378,7 +411,7 @@ export class McpRuntimeServer {
         return;
       }
 
-      // Health check
+      // Health check (no auth required)
       if (req.url === '/health') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(
@@ -387,13 +420,18 @@ export class McpRuntimeServer {
             server: this.metadata.server?.name,
             version: this.metadata.server?.version,
             transport: 'websocket',
+            authEnabled: this.authOptions.enabled ?? false,
           })
         );
         return;
       }
 
+      // Authenticate for other endpoints
+      const authResult = await this.authMiddleware(req, res);
+      if (!authResult) return;
+
       // Info endpoint
-      if (req.url === '/') {
+      if (req.url === '/' || req.url?.startsWith('/?')) {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(
           JSON.stringify({
@@ -403,23 +441,51 @@ export class McpRuntimeServer {
             tools: this.metadata.tools.length,
             resources: this.metadata.resources.length,
             prompts: this.metadata.prompts.length,
+            client: authResult.auth.clientName,
+            requestId: authResult.requestId,
           })
         );
         return;
       }
-
       res.writeHead(426, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Upgrade Required', message: `Connect via WebSocket at ${endpoint}` }));
+      res.end(
+        JSON.stringify({
+          error: 'Upgrade Required',
+          message: `Connect via WebSocket at ${endpoint}`,
+        })
+      );
     });
 
     // Handle WebSocket upgrade manually
-    httpServer.on('upgrade', (req: IncomingMessage, socket, _head) => {
+    httpServer.on('upgrade', async (req: IncomingMessage, socket, _head) => {
       const url = new URL(req.url ?? '/', `http://localhost:${port}`);
 
       if (url.pathname !== endpoint) {
         socket.write('HTTP/1.1 404 Not Found\r\n\r\n');
         socket.destroy();
         return;
+      }
+
+      // Authenticate WebSocket connection
+      if (this.authOptions.enabled) {
+        const apiKeys = normalizeApiKeys(this.authOptions.apiKeys);
+        const token = extractApiKey(
+          req,
+          this.authOptions.headerName,
+          this.authOptions.queryParamName
+        );
+        const authResult = validateApiKey(token, apiKeys);
+
+        if (!authResult.success) {
+          socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+          socket.destroy();
+          this.authOptions.onAuthFailure?.(req, authResult.error ?? 'Auth failed');
+          return;
+        }
+
+        console.error(
+          `[WebSocket] Client connected: ${authResult.clientName ?? authResult.clientId}`
+        );
       }
 
       // Accept WebSocket connection
@@ -526,11 +592,13 @@ export class McpRuntimeServer {
       sessions.set(sessionId, { send });
 
       // Send welcome message
-      send(JSON.stringify({
-        jsonrpc: '2.0',
-        method: 'connection/established',
-        params: { sessionId, server: this.metadata.server?.name },
-      }));
+      send(
+        JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'connection/established',
+          params: { sessionId, server: this.metadata.server?.name },
+        })
+      );
 
       // Handle incoming messages
       let messageBuffer = Buffer.alloc(0);
@@ -573,11 +641,13 @@ export class McpRuntimeServer {
                 send(JSON.stringify(response));
               }
             } catch (error) {
-              send(JSON.stringify({
-                jsonrpc: '2.0',
-                error: { code: -32700, message: 'Parse error' },
-                id: null,
-              }));
+              send(
+                JSON.stringify({
+                  jsonrpc: '2.0',
+                  error: { code: -32700, message: 'Parse error' },
+                  id: null,
+                })
+              );
             }
           }
         }
@@ -614,7 +684,11 @@ export class McpRuntimeServer {
     const req = message as { jsonrpc?: string; method?: string; params?: unknown; id?: unknown };
 
     if (req.jsonrpc !== '2.0' || !req.method) {
-      return { jsonrpc: '2.0', error: { code: -32600, message: 'Invalid Request' }, id: req.id ?? null };
+      return {
+        jsonrpc: '2.0',
+        error: { code: -32600, message: 'Invalid Request' },
+        id: req.id ?? null,
+      };
     }
 
     try {
@@ -650,15 +724,21 @@ export class McpRuntimeServer {
           const toolParams = req.params as { name: string; arguments?: Record<string, unknown> };
           const tool = this.metadata.tools.find(t => t.name === toolParams.name);
           if (!tool) {
-            return { jsonrpc: '2.0', error: { code: -32602, message: `Unknown tool: ${toolParams.name}` }, id: req.id };
+            return {
+              jsonrpc: '2.0',
+              error: { code: -32602, message: `Unknown tool: ${toolParams.name}` },
+              id: req.id,
+            };
           }
           const method = Reflect.get(this.instance as object, tool.propertyKey);
           const toolResult = await method.apply(this.instance, [toolParams.arguments ?? {}]);
           result = {
-            content: [{
-              type: 'text',
-              text: typeof toolResult === 'string' ? toolResult : JSON.stringify(toolResult),
-            }],
+            content: [
+              {
+                type: 'text',
+                text: typeof toolResult === 'string' ? toolResult : JSON.stringify(toolResult),
+              },
+            ],
           };
           break;
 
@@ -685,7 +765,11 @@ export class McpRuntimeServer {
             }
           }
           if (!result) {
-            return { jsonrpc: '2.0', error: { code: -32602, message: `Resource not found: ${resParams.uri}` }, id: req.id };
+            return {
+              jsonrpc: '2.0',
+              error: { code: -32602, message: `Resource not found: ${resParams.uri}` },
+              id: req.id,
+            };
           }
           break;
 
@@ -703,15 +787,26 @@ export class McpRuntimeServer {
           const promptParams = req.params as { name: string; arguments?: Record<string, unknown> };
           const prompt = this.metadata.prompts.find(p => p.name === promptParams.name);
           if (!prompt) {
-            return { jsonrpc: '2.0', error: { code: -32602, message: `Unknown prompt: ${promptParams.name}` }, id: req.id };
+            return {
+              jsonrpc: '2.0',
+              error: { code: -32602, message: `Unknown prompt: ${promptParams.name}` },
+              id: req.id,
+            };
           }
           const promptMethod = Reflect.get(this.instance as object, prompt.propertyKey);
-          const promptArgs = this.resolvePromptArgs(prompt.propertyKey, promptParams.arguments ?? {});
+          const promptArgs = this.resolvePromptArgs(
+            prompt.propertyKey,
+            promptParams.arguments ?? {}
+          );
           result = await promptMethod.apply(this.instance, promptArgs);
           break;
 
         default:
-          return { jsonrpc: '2.0', error: { code: -32601, message: `Method not found: ${req.method}` }, id: req.id };
+          return {
+            jsonrpc: '2.0',
+            error: { code: -32601, message: `Method not found: ${req.method}` },
+            id: req.id,
+          };
       }
 
       return { jsonrpc: '2.0', result, id: req.id };

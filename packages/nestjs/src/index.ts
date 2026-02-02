@@ -16,5 +16,8 @@ export * from './metadata/storage.js';
 // Runtime
 export * from './runtime/server.js';
 
+// Authentication
+export * from './auth/index.js';
+
 // Version
 export const VERSION = '0.1.0';
