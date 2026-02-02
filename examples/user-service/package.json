@@ -1,6 +1,6 @@
 {
   "name": "mcp-user-service-example",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "type": "module",
   "description": "Full-service example with spec-first workflow using @mcp-weave",

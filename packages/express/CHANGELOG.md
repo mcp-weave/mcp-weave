@@ -1,8 +1,8 @@
-# @mcp-weave/cli
+# @mcp-weave/express
 
-## 0.1.3
+## 0.2.0
 
-### Patch Changes
+### Minor Changes
 
 - a277e30: Add @mcp-weave/express package and hot reload support
 
@@ -18,17 +18,7 @@
   - Add `--watch` flag to `mcp-weave start` for hot reload
   - Add `--port` option for SSE transport configuration
 
-## 0.1.2
-
 ### Patch Changes
 
-- 2f96fd6: Add McpTestClient for easy testing of decorated MCP servers
-  - New `McpTestClient` class to test decorated classes directly
-  - Methods: `callTool()`, `readResource()`, `getPrompt()`
-  - Helpers: `listTools()`, `listResources()`, `listPrompts()`
-  - Verification: `hasTool()`, `hasResource()`, `hasPrompt()`
-  - New user-service example with full CRUD operations
-  - 21 new tests for McpTestClient (173 total tests)
-
-- Updated dependencies [2f96fd6]
-  - @mcp-weave/core@0.1.1
+- Updated dependencies [fb04d98]
+  - @mcp-weave/nestjs@0.2.0

@@ -1,5 +1,12 @@
 # mcp-user-service-example
 
+## 1.0.2
+
+### Patch Changes
+
+- Updated dependencies [fb04d98]
+  - @mcp-weave/nestjs@0.2.0
+
 ## 1.0.1
 
 ### Patch Changes

@@ -1,5 +1,17 @@
 # @mcp-weave/nestjs
 
+## 0.2.0
+
+### Minor Changes
+
+- fb04d98: Add SSE (Server-Sent Events) transport support
+  - New `startSSE()` method on `McpRuntimeServer` for HTTP-based MCP servers
+  - Support `transport: 'sse'` option in server configuration
+  - CORS enabled by default for cross-origin requests
+  - Health check endpoint at `/health`
+  - Session management for multiple concurrent clients
+  - Automatic cleanup on connection close
+
 ## 0.1.1
 
 ### Patch Changes
