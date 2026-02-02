@@ -1,0 +1,50 @@
+{
+  "name": "@mcp-weave/webui",
+  "version": "0.1.0",
+  "description": "Web UI dashboard for testing MCP servers",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "public"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint src --ext .ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mcp-weave/nestjs": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.12",
+    "reflect-metadata": "^0.2.2",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "webui",
+    "dashboard",
+    "testing"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mcp-weave/mcp-weave.git",
+    "directory": "packages/webui"
+  }
+}

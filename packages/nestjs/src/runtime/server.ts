@@ -12,17 +12,17 @@ import {
  */
 export interface McpRuntimeOptions {
   /**
-   * Transport type: 'stdio' (default) or 'sse'
+   * Transport type: 'stdio' (default), 'sse', or 'websocket'
    */
-  transport?: 'stdio' | 'sse';
+  transport?: 'stdio' | 'sse' | 'websocket';
 
   /**
-   * Port for SSE transport (default: 3000)
+   * Port for SSE/WebSocket transport (default: 3000)
    */
   port?: number;
 
   /**
-   * Endpoint path for SSE (default: '/sse')
+   * Endpoint path for SSE/WebSocket (default: '/sse' or '/ws')
    */
   endpoint?: string;
 }
@@ -357,6 +357,372 @@ export class McpRuntimeServer {
   getServer(): Server {
     return this.server;
   }
+
+  /**
+   * Start the MCP server with WebSocket transport
+   */
+  async startWebSocket(options: { port?: number; endpoint?: string } = {}): Promise<HttpServer> {
+    const port = options.port ?? 8080;
+    const endpoint = options.endpoint ?? '/ws';
+
+    // Create HTTP server for WebSocket upgrade
+    const httpServer = createServer((req: IncomingMessage, res: ServerResponse) => {
+      // Handle CORS
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Upgrade, Connection');
+
+      if (req.method === 'OPTIONS') {
+        res.writeHead(200);
+        res.end();
+        return;
+      }
+
+      // Health check
+      if (req.url === '/health') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(
+          JSON.stringify({
+            status: 'ok',
+            server: this.metadata.server?.name,
+            version: this.metadata.server?.version,
+            transport: 'websocket',
+          })
+        );
+        return;
+      }
+
+      // Info endpoint
+      if (req.url === '/') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(
+          JSON.stringify({
+            name: this.metadata.server?.name,
+            version: this.metadata.server?.version,
+            websocket: `ws://localhost:${port}${endpoint}`,
+            tools: this.metadata.tools.length,
+            resources: this.metadata.resources.length,
+            prompts: this.metadata.prompts.length,
+          })
+        );
+        return;
+      }
+
+      res.writeHead(426, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Upgrade Required', message: `Connect via WebSocket at ${endpoint}` }));
+    });
+
+    // Handle WebSocket upgrade manually
+    httpServer.on('upgrade', (req: IncomingMessage, socket, _head) => {
+      const url = new URL(req.url ?? '/', `http://localhost:${port}`);
+
+      if (url.pathname !== endpoint) {
+        socket.write('HTTP/1.1 404 Not Found\r\n\r\n');
+        socket.destroy();
+        return;
+      }
+
+      // Accept WebSocket connection
+      const key = req.headers['sec-websocket-key'];
+      if (!key) {
+        socket.write('HTTP/1.1 400 Bad Request\r\n\r\n');
+        socket.destroy();
+        return;
+      }
+
+      // Generate accept key
+      const crypto = require('crypto');
+      const acceptKey = crypto
+        .createHash('sha1')
+        .update(key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11')
+        .digest('base64');
+
+      // Send handshake response
+      socket.write(
+        'HTTP/1.1 101 Switching Protocols\r\n' +
+          'Upgrade: websocket\r\n' +
+          'Connection: Upgrade\r\n' +
+          `Sec-WebSocket-Accept: ${acceptKey}\r\n` +
+          '\r\n'
+      );
+
+      // Create a simple WebSocket message handler
+      const sessions = new Map<string, { send: (data: string) => void }>();
+      const sessionId = crypto.randomUUID();
+
+      // WebSocket frame encoding
+      const encodeFrame = (data: string): Buffer => {
+        const payload = Buffer.from(data, 'utf8');
+        const length = payload.length;
+        let frame: Buffer;
+
+        if (length < 126) {
+          frame = Buffer.alloc(2 + length);
+          frame[0] = 0x81; // Text frame, FIN bit set
+          frame[1] = length;
+          payload.copy(frame, 2);
+        } else if (length < 65536) {
+          frame = Buffer.alloc(4 + length);
+          frame[0] = 0x81;
+          frame[1] = 126;
+          frame.writeUInt16BE(length, 2);
+          payload.copy(frame, 4);
+        } else {
+          frame = Buffer.alloc(10 + length);
+          frame[0] = 0x81;
+          frame[1] = 127;
+          frame.writeBigUInt64BE(BigInt(length), 2);
+          payload.copy(frame, 10);
+        }
+        return frame;
+      };
+
+      // WebSocket frame decoding
+      const decodeFrame = (buffer: Buffer): { opcode: number; payload: string } | null => {
+        if (buffer.length < 2) return null;
+
+        const byte0 = buffer[0]!;
+        const byte1 = buffer[1]!;
+        const opcode = byte0 & 0x0f;
+        const masked = (byte1 & 0x80) !== 0;
+        let payloadLength = byte1 & 0x7f;
+        let offset = 2;
+
+        if (payloadLength === 126) {
+          if (buffer.length < 4) return null;
+          payloadLength = buffer.readUInt16BE(2);
+          offset = 4;
+        } else if (payloadLength === 127) {
+          if (buffer.length < 10) return null;
+          payloadLength = Number(buffer.readBigUInt64BE(2));
+          offset = 10;
+        }
+
+        if (masked) {
+          if (buffer.length < offset + 4 + payloadLength) return null;
+          const mask = buffer.slice(offset, offset + 4);
+          offset += 4;
+          const payload = buffer.slice(offset, offset + payloadLength);
+          for (let i = 0; i < payload.length; i++) {
+            const maskByte = mask[i % 4] ?? 0;
+            payload[i] = (payload[i] ?? 0) ^ maskByte;
+          }
+          return { opcode, payload: payload.toString('utf8') };
+        } else {
+          if (buffer.length < offset + payloadLength) return null;
+          return { opcode, payload: buffer.slice(offset, offset + payloadLength).toString('utf8') };
+        }
+      };
+
+      // Send function
+      const send = (data: string) => {
+        try {
+          socket.write(encodeFrame(data));
+        } catch {
+          // Connection closed
+        }
+      };
+
+      sessions.set(sessionId, { send });
+
+      // Send welcome message
+      send(JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'connection/established',
+        params: { sessionId, server: this.metadata.server?.name },
+      }));
+
+      // Handle incoming messages
+      let messageBuffer = Buffer.alloc(0);
+
+      socket.on('data', async (chunk: Buffer) => {
+        messageBuffer = Buffer.concat([messageBuffer, chunk]);
+
+        while (messageBuffer.length > 0) {
+          const frame = decodeFrame(messageBuffer);
+          if (!frame) break;
+
+          // Calculate frame size to remove from buffer
+          let frameSize = 2;
+          const byte1 = messageBuffer[1] ?? 0;
+          const payloadLength = byte1 & 0x7f;
+          if (payloadLength === 126) frameSize = 4;
+          else if (payloadLength === 127) frameSize = 10;
+          if ((byte1 & 0x80) !== 0) frameSize += 4;
+          frameSize += frame.payload.length;
+          messageBuffer = messageBuffer.slice(frameSize);
+
+          if (frame.opcode === 0x08) {
+            // Close frame
+            socket.end();
+            return;
+          }
+
+          if (frame.opcode === 0x09) {
+            // Ping - send pong
+            socket.write(Buffer.from([0x8a, 0x00]));
+            continue;
+          }
+
+          if (frame.opcode === 0x01) {
+            // Text frame - handle JSON-RPC
+            try {
+              const message = JSON.parse(frame.payload);
+              const response = await this.handleWebSocketMessage(message);
+              if (response) {
+                send(JSON.stringify(response));
+              }
+            } catch (error) {
+              send(JSON.stringify({
+                jsonrpc: '2.0',
+                error: { code: -32700, message: 'Parse error' },
+                id: null,
+              }));
+            }
+          }
+        }
+      });
+
+      socket.on('close', () => {
+        sessions.delete(sessionId);
+      });
+
+      socket.on('error', () => {
+        sessions.delete(sessionId);
+      });
+    });
+
+    return new Promise((resolve, reject) => {
+      httpServer.on('error', reject);
+      httpServer.listen(port, () => {
+        console.error(
+          `MCP server '${this.metadata.server?.name}' started on ws://localhost:${port}${endpoint}`
+        );
+        resolve(httpServer);
+      });
+    });
+  }
+
+  /**
+   * Handle WebSocket JSON-RPC messages
+   */
+  private async handleWebSocketMessage(message: unknown): Promise<unknown> {
+    if (!message || typeof message !== 'object') {
+      return { jsonrpc: '2.0', error: { code: -32600, message: 'Invalid Request' }, id: null };
+    }
+
+    const req = message as { jsonrpc?: string; method?: string; params?: unknown; id?: unknown };
+
+    if (req.jsonrpc !== '2.0' || !req.method) {
+      return { jsonrpc: '2.0', error: { code: -32600, message: 'Invalid Request' }, id: req.id ?? null };
+    }
+
+    try {
+      let result: unknown;
+
+      switch (req.method) {
+        case 'initialize':
+          result = {
+            protocolVersion: '2024-11-05',
+            serverInfo: {
+              name: this.metadata.server?.name,
+              version: this.metadata.server?.version ?? '1.0.0',
+            },
+            capabilities: {
+              tools: this.metadata.tools.length > 0 ? {} : undefined,
+              resources: this.metadata.resources.length > 0 ? {} : undefined,
+              prompts: this.metadata.prompts.length > 0 ? {} : undefined,
+            },
+          };
+          break;
+
+        case 'tools/list':
+          result = {
+            tools: this.metadata.tools.map(t => ({
+              name: t.name,
+              description: t.description,
+              inputSchema: t.inputSchema ?? { type: 'object', properties: {} },
+            })),
+          };
+          break;
+
+        case 'tools/call':
+          const toolParams = req.params as { name: string; arguments?: Record<string, unknown> };
+          const tool = this.metadata.tools.find(t => t.name === toolParams.name);
+          if (!tool) {
+            return { jsonrpc: '2.0', error: { code: -32602, message: `Unknown tool: ${toolParams.name}` }, id: req.id };
+          }
+          const method = Reflect.get(this.instance as object, tool.propertyKey);
+          const toolResult = await method.apply(this.instance, [toolParams.arguments ?? {}]);
+          result = {
+            content: [{
+              type: 'text',
+              text: typeof toolResult === 'string' ? toolResult : JSON.stringify(toolResult),
+            }],
+          };
+          break;
+
+        case 'resources/list':
+          result = {
+            resources: this.metadata.resources.map(r => ({
+              uri: r.uri,
+              name: r.name,
+              description: r.description,
+              mimeType: r.mimeType,
+            })),
+          };
+          break;
+
+        case 'resources/read':
+          const resParams = req.params as { uri: string };
+          for (const resource of this.metadata.resources) {
+            const uriParams = this.extractUriParams(resource.uri, resParams.uri);
+            if (uriParams) {
+              const resMethod = Reflect.get(this.instance as object, resource.propertyKey);
+              const args = this.resolveResourceArgs(resource.propertyKey, uriParams);
+              result = await resMethod.apply(this.instance, args);
+              break;
+            }
+          }
+          if (!result) {
+            return { jsonrpc: '2.0', error: { code: -32602, message: `Resource not found: ${resParams.uri}` }, id: req.id };
+          }
+          break;
+
+        case 'prompts/list':
+          result = {
+            prompts: this.metadata.prompts.map(p => ({
+              name: p.name,
+              description: p.description,
+              arguments: p.arguments ?? [],
+            })),
+          };
+          break;
+
+        case 'prompts/get':
+          const promptParams = req.params as { name: string; arguments?: Record<string, unknown> };
+          const prompt = this.metadata.prompts.find(p => p.name === promptParams.name);
+          if (!prompt) {
+            return { jsonrpc: '2.0', error: { code: -32602, message: `Unknown prompt: ${promptParams.name}` }, id: req.id };
+          }
+          const promptMethod = Reflect.get(this.instance as object, prompt.propertyKey);
+          const promptArgs = this.resolvePromptArgs(prompt.propertyKey, promptParams.arguments ?? {});
+          result = await promptMethod.apply(this.instance, promptArgs);
+          break;
+
+        default:
+          return { jsonrpc: '2.0', error: { code: -32601, message: `Method not found: ${req.method}` }, id: req.id };
+      }
+
+      return { jsonrpc: '2.0', result, id: req.id };
+    } catch (error) {
+      return {
+        jsonrpc: '2.0',
+        error: { code: -32000, message: error instanceof Error ? error.message : 'Internal error' },
+        id: req.id,
+      };
+    }
+  }
 }
 
 /**
@@ -369,6 +735,10 @@ export class McpRuntimeServer {
  * @example
  * // SSE transport
  * await createMcpServer(MyServer, { transport: 'sse', port: 3000 });
+ *
+ * @example
+ * // WebSocket transport
+ * await createMcpServer(MyServer, { transport: 'websocket', port: 8080 });
  */
 export async function createMcpServer(
   target: Function,
@@ -378,6 +748,8 @@ export async function createMcpServer(
 
   if (options.transport === 'sse') {
     await server.startSSE({ port: options.port, endpoint: options.endpoint });
+  } else if (options.transport === 'websocket') {
+    await server.startWebSocket({ port: options.port, endpoint: options.endpoint });
   } else {
     await server.start();
   }

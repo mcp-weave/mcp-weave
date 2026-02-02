@@ -8,11 +8,12 @@
 - [x] Configuração TypeScript, ESLint, Prettier
 - [x] **@mcp-weave/core**: Parser YAML, validação Zod, gerador de código
 - [x] **@mcp-weave/nestjs**: Decorators completos (`@McpServer`, `@McpTool`, `@McpResource`, `@McpPrompt`, `@McpInput`, `@McpParam`, `@McpPromptArg`)
-- [x] **@mcp-weave/nestjs**: Runtime server com suporte a stdio e SSE
+- [x] **@mcp-weave/nestjs**: Runtime server com suporte a stdio, SSE e WebSocket
 - [x] **@mcp-weave/cli**: Comandos `generate`, `init`, `start`, `extract` com hot reload
 - [x] **@mcp-weave/testing**: Mock server, transport, assertions e McpTestClient
 - [x] **@mcp-weave/express**: Middleware e servidor Express para MCP
-- [x] Build funcionando em todos os pacotes (192 testes)
+- [x] **@mcp-weave/webui**: Dashboard web para testar MCP servers
+- [x] Build funcionando em todos os pacotes (235 testes)
 
 ### Pendente para v0.1.0
 
@@ -38,15 +39,17 @@ packages/core/src/__tests__/         # 51 tests
 └── generator/
     └── server.test.ts              # 13 tests - Geração de código
 
-packages/nestjs/src/__tests__/       # 42 tests
+packages/nestjs/src/__tests__/       # 52 tests
 ├── decorators/
 │   ├── mcp-server.test.ts          # 4 tests
 │   ├── mcp-tool.test.ts            # 5 tests
 │   ├── mcp-resource.test.ts        # 5 tests
 │   ├── mcp-prompt.test.ts          # 5 tests
 │   └── params.test.ts              # 8 tests
-└── metadata/
-    └── storage.test.ts             # 15 tests
+├── metadata/
+│   └── storage.test.ts             # 15 tests
+└── runtime/
+    └── websocket.test.ts           # 10 tests - WebSocket transport
 
 packages/testing/src/__tests__/      # 68 tests
 ├── mock-server.test.ts             # 13 tests
@@ -62,6 +65,10 @@ packages/cli/src/__tests__/          # 12 tests
 packages/express/src/__tests__/      # 19 tests
 ├── middleware.test.ts              # 14 tests
 └── server.test.ts                  # 5 tests
+
+packages/webui/src/__tests__/        # 33 tests
+├── server.test.ts                  # 15 tests - McpWebUI class
+└── api.test.ts                     # 18 tests - HTTP API endpoints
 ```
 
 ### 1.2 Exemplo Funcional ✅ CONCLUÍDO
@@ -167,20 +174,89 @@ mcp-weave start --watch --transport sse --port 3000
 
 ## Fase 3: v0.3.0+ Features
 
-### 3.1 WebSocket Transport
+### 3.1 WebSocket Transport ✅ CONCLUÍDO
 
 ```typescript
-@McpServer({ transport: 'websocket', port: 8080 })
+import { McpRuntimeServer } from '@mcp-weave/nestjs';
+
+const server = new McpRuntimeServer(MyServer, {
+  transport: 'websocket',
+  port: 8080,
+  endpoint: '/ws',
+});
+
+await server.start();
+// or
+await server.startWebSocket({ port: 8080, endpoint: '/ws' });
 ```
 
-### 3.2 Web UI para Testing
+**Funcionalidades:**
+- Suporte a WebSocket com upgrade HTTP
+- Frame encoding/decoding (text frames)
+- Ping/pong para keepalive
+- JSON-RPC messages over WebSocket
 
-Dashboard para testar tools/resources/prompts interativamente.
+### 3.2 Web UI para Testing ✅ CONCLUÍDO
+
+Novo pacote `@mcp-weave/webui`:
+
+```typescript
+import { McpWebUI } from '@mcp-weave/webui';
+
+const webui = new McpWebUI(MyServer, {
+  port: 3000,
+  title: 'My MCP Dashboard',
+  theme: 'dark',
+});
+
+await webui.start();
+// Dashboard available at http://localhost:3000
+```
+
+**Dashboard Features:**
+- Server info panel (name, version, capabilities)
+- Tools panel with input forms
+- Resources panel with URI template support
+- Prompts panel with argument inputs
+- Call history with timing information
+- Real-time server logs
+- Dark/light theme support
+- CORS enabled for external access
 
 ### 3.3 Suporte Adicional
 
 - Python/FastAPI (`@mcp-weave/fastapi`)
 - Go/Gin
+
+---
+
+## Resumo do Projeto
+
+### Pacotes Implementados
+
+| Pacote | Versão | Descrição | Testes |
+|--------|--------|-----------|--------|
+| @mcp-weave/core | 0.1.1 | Parser YAML, validação Zod, gerador de código | 51 |
+| @mcp-weave/nestjs | 0.1.1 | Decorators, runtime server, transports | 52 |
+| @mcp-weave/cli | 0.1.2 | Comandos generate, init, start, extract | 12 |
+| @mcp-weave/testing | 0.2.0 | Mock server, transport, assertions | 68 |
+| @mcp-weave/express | 0.1.0 | Middleware Express para MCP | 19 |
+| @mcp-weave/webui | 0.1.0 | Dashboard web para testes | 33 |
+| **Total** | | | **235** |
+
+### Transports Suportados
+
+- ✅ stdio (padrão)
+- ✅ SSE (Server-Sent Events)
+- ✅ WebSocket
+
+### Funcionalidades
+
+- ✅ Code-first workflow (decorators)
+- ✅ Spec-first workflow (YAML → código)
+- ✅ Hot reload com `--watch`
+- ✅ Web dashboard para testes
+- ✅ Testing utilities completas
 
 ---
 
